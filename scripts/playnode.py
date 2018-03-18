@@ -48,7 +48,7 @@ class PlayNode:
         
         # DO SOMETHING WITH image AND laser_msg HERE... OR NOT...
 
-    def set_velocities(linear, angular):
+    def set_velocities(self,linear, angular):
         msg = Twist()
         msg.linear.x = linear
         msg.angular.z = angular
@@ -57,9 +57,10 @@ class PlayNode:
 if __name__ == '__main__':
 
     play_node = PlayNode()
-       
+           
     loop_rate = rospy.Rate(10)
-
+    while True:
+        play_node.set_velocities(1.0,0.5)
     rospy.loginfo("Starting loop")
     while not rospy.is_shutdown():
 
