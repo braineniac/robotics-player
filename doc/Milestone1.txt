@@ -21,3 +21,4 @@ The function laser_slice
 The function get_laser_datasize determines the size of the array
 
 3. The function set_velocities is the control function for simple movement of the robot. It determines through linear x the direction and angular z the speed of the robot
+
