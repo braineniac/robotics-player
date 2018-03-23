@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import sys
+import random as rd
+from time import sleep
 
 import rospy
 from std_msgs.msg import String
@@ -45,20 +47,39 @@ class PlayNode:
         image = cv2.flip(image, -1)
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
-        while True:
-            print(laser_msg.ranges)
-            laser_data = self.laser_slice(laser_msg.ranges,10)
-            print(laser_data)
-            print(self.obstacle_position(laser_data,5.5))
-            exit(0)
-            #self.set_velocities(1.0, 0.5)
 
+        laser_data = self.laser_slice(laser_msg.ranges,50)
+        threshhold = 1
+        self.avoid_obstacle(laser_data,threshhold)
+
+
+    def avoid_obstacle(self,laser_data=None, threshhold=None):
+        if laser_data is not None and threshhold is not None:
+            if self.obstacle_position(laser_data,threshhold) == -1:
+                rospy.loginfo("Obstacle detected to the left! Evading to the \
+                        right!")
+                sleep(1)
+                self.set_velocities(0,-0.5) #turn right
+            elif self.obstacle_position(laser_data,threshhold) == 0:
+                rospy.loginfo("Obstacle detected in front! Evading to the \
+                        right!")
+                sleep(1)
+                self.set_velocities(0,-0.5) #turn right
+
+            elif self.obstacle_position(laser_data,threshhold) == -1:
+                rospy.loginfo("Obstacle detected to the right! Evading to the \
+                        left!")
+                sleep(1)
+                self.set_velocities(0,0.5)
+            else:
+                rospy.loginfo("No obstacle detected! Moving randomly!")
+                self.set_velocities(rd.random(),2*(rd.random()-0.5))
 
 
     def obstacle_position(self,laser_data=None, threshhold=None):
         if laser_data is not None and threshhold is not None:
             middle = int(self.get_laser_datasize(laser_data)/2)
-            print(middle)
+            print("Middle:", middle)
             laser_middle_data =[laser_data[middle-1],laser_data[middle],laser_data[middle+1]]
             laser_left_data= laser_data[:middle-1]
             laser_right_data = laser_data[middle+1:]
@@ -66,12 +87,14 @@ class PlayNode:
             for data in laser_middle_data:
                 try:
                     if data<threshhold:
+                        print(data)
                         return 0
                 except:
                     pass
             for data in laser_right_data:
                 try:
                     if data<threshhold:
+                        print(data)
                         return 1
                 except:
                     pass
@@ -79,6 +102,7 @@ class PlayNode:
             for data in laser_left_data:
                 try:
                     if data<threshhold:
+                        print(data)
                         return -1
                 except:
                     pass
@@ -115,7 +139,7 @@ class PlayNode:
                 sum = sum+1
             return sum
         else:
-            raise ValueError("Couldn't compute laser data size!'n")
+            raise ValueError("Couldn't compute laser data size!\n")
             exit(-1)
 
 
@@ -127,5 +151,10 @@ if __name__ == '__main__':
     rospy.loginfo("Starting loop")
     while not rospy.is_shutdown():
         # 10 Hz loop
+        #play_node.time_sync =message_filters.ApproximateTimeSynchronizer([play_node.image_sub,play_node.laser_sub],
+#                                                                     1000,
+ #                                                                    0.1)
+        #play_node.time_sync.registerCallback(play_node.perception_cb)
+
 
         loop_rate.sleep()
