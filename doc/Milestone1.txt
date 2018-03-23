@@ -1,0 +1,23 @@
+Milestone 1
+
+Tasks to accomplish for this milestone
+
+• The robot should drive around randomly (it’s up to you what “randomly” means)
+
+• It must avoid obstacles, either by driving somewhere else, or around the obstacle
+
+After setting up an environment in Ubuntu with ROS and the preset hockeyworld we determined the three main jobs for this milestone
+
+1.) Reading the laser scan data and extracting necessary information into an processable array
+
+2.) Avoiding obstacles and letting the robot turn if something is in front of him
+
+3.) Controling the movement and letting it drive randomly around
+
+1. The laser data can be found through the initializing of the sensor array and sliced into a front section which will be used to determine a obstacle in front of it.
+The function laser_slice
+
+2. The function obstacle_position holds the front array sliced into three seperate arrays. The seperate arrays will have a left, right and middle section with the data of range from the laser sensor. If one of the arrays holds a data smaller than a certain threshhold the robot should turn away so the obstacle can be avoided.
+The function get_laser_datasize determines the size of the array
+
+3. The function set_velocities is the control function for simple movement of the robot. It determines through linear x the direction and angular z the speed of the robot
