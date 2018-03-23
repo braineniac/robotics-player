@@ -33,7 +33,8 @@ class PlayNode:
         self.time_sync.registerCallback(self.perception_cb)
 
     def perception_cb(self, img_msg, laser_msg):
-        rospy.loginfo("Received new image ({}) and scan ({})".format(img_msg.header.stamp, laser_msg.header.stamp))
+        rospy.loginfo("Received new image ({}) and scan ({})".
+                format(img_msg.header.stamp, laser_msg.header.stamp))
 
         try:
             image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
@@ -46,18 +47,76 @@ class PlayNode:
         cv2.waitKey(10)
         while True:
             print(laser_msg.ranges)
-            play_node.set_velocities(1.0, 0.5)
+            laser_data = self.laser_slice(laser_msg.ranges,10)
+            print(laser_data)
+            print(self.obstacle_position(laser_data,5.5))
+            exit(0)
+            #self.set_velocities(1.0, 0.5)
 
-        # DO SOMETHING WITH image AND laser_msg HERE... OR NOT...
 
 
+    def obstacle_position(self,laser_data=None, threshhold=None):
+        if laser_data is not None and threshhold is not None:
+            middle = int(self.get_laser_datasize(laser_data)/2)
+            print(middle)
+            laser_middle_data =[laser_data[middle-1],laser_data[middle],laser_data[middle+1]]
+            laser_left_data= laser_data[:middle-1]
+            laser_right_data = laser_data[middle+1:]
 
+            for data in laser_middle_data:
+                try:
+                    if data<threshhold:
+                        return 0
+                except:
+                    pass
+            for data in laser_right_data:
+                try:
+                    if data<threshhold:
+                        return 1
+                except:
+                    pass
+
+            for data in laser_left_data:
+                try:
+                    if data<threshhold:
+                        return -1
+                except:
+                    pass
+            return -5
+
+        else:
+            raise ValueError("Didn't pass an argument!\n");
+            exit(-1)
+
+
+    def laser_slice(self,raw_laser_data=None,p=None):
+        if raw_laser_data is not None and p is not None:
+            if self.get_laser_datasize(raw_laser_data)<p:
+                raise ValueError("p is bigger than raw_laser_data size!\n")
+                exit(-1)
+            return raw_laser_data[p:-p]
+        else:
+            raise ValueError("Passed wrong argument to function!\n")
+            exit(-1)
 
     def set_velocities(self, linear, angular):
         msg = Twist()
         msg.linear.x = linear
         msg.angular.z = angular
         self.velocity_pub.publish(msg)
+
+    def get_laser_datasize(self,laser_data):
+        """
+        There is no __len__ implementation of the PlayNode object
+        """
+        if laser_data is not None:
+            sum =0
+            for data in laser_data:
+                sum = sum+1
+            return sum
+        else:
+            raise ValueError("Couldn't compute laser data size!'n")
+            exit(-1)
 
 
 if __name__ == '__main__':
