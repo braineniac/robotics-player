@@ -26,8 +26,9 @@ class PlayNode:
         self.image_window = image_window
 
         self.velocity_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1000)
+        self.laser_sub = message_filters.Subscriber("front_laser/scan",
+                LaserScan)
         self.image_sub = message_filters.Subscriber("front_camera/image_raw", Image)
-        self.laser_sub = message_filters.Subscriber("front_laser/scan", LaserScan)
 
         self.time_sync = message_filters.ApproximateTimeSynchronizer([self.image_sub, self.laser_sub],
                                                                      synchroniser_queuesize,
@@ -48,10 +49,24 @@ class PlayNode:
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
 
-        laser_data = self.laser_slice(laser_msg.ranges,50)
-        threshhold = 1
+        #laser_data = self.laser_slice(laser_msg.ranges,50)
+        #threshhold = 1
+        #self.avoid_obstacle(laser_data,threshhold)
+    def run_laser(self, laser_msg):
+
+        laser_data = self.laser_slice(laser_msg.ranges,80)
+        threshhold = 6
         self.avoid_obstacle(laser_data,threshhold)
 
+    def laser_listener(self):
+        synchroniser_queuesize = 20
+        message_slop =0.1
+        laser_t =message_filters.ApproximateTimeSynchronizer([self.laser_sub],
+                                                                     synchroniser_queuesize,
+                                                                     message_slop)
+        laser_t = laser_t.registerCallback(self.run_laser)
+
+        rospy.spin()
 
     def avoid_obstacle(self,laser_data=None, threshhold=None):
         if laser_data is not None and threshhold is not None:
@@ -70,7 +85,7 @@ class PlayNode:
                 rospy.loginfo("Obstacle detected to the right! Evading to the \
                         left!")
                 sleep(1)
-                self.set_velocities(0,0.5)
+                self.set_velocities(0,0.5) #turn left
             else:
                 rospy.loginfo("No obstacle detected! Moving randomly!")
                 self.set_velocities(rd.random(),2*(rd.random()-0.5))
@@ -79,11 +94,10 @@ class PlayNode:
     def obstacle_position(self,laser_data=None, threshhold=None):
         if laser_data is not None and threshhold is not None:
             middle = int(self.get_laser_datasize(laser_data)/2)
-            print("Middle:", middle)
             laser_middle_data =[laser_data[middle-1],laser_data[middle],laser_data[middle+1]]
             laser_left_data= laser_data[:middle-1]
             laser_right_data = laser_data[middle+1:]
-
+            print(laser_middle_data)
             for data in laser_middle_data:
                 try:
                     if data<threshhold:
@@ -147,14 +161,9 @@ if __name__ == '__main__':
 
     play_node = PlayNode()
 
+    play_node.laser_listener()
     loop_rate = rospy.Rate(10)
     rospy.loginfo("Starting loop")
     while not rospy.is_shutdown():
         # 10 Hz loop
-        #play_node.time_sync =message_filters.ApproximateTimeSynchronizer([play_node.image_sub,play_node.laser_sub],
-#                                                                     1000,
- #                                                                    0.1)
-        #play_node.time_sync.registerCallback(play_node.perception_cb)
-
-
         loop_rate.sleep()
