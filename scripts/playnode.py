@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 import sys
-import random as rd
-from time import sleep
 
 import rospy
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan, Image
-from geometry_msgs.msg import Twist
 import message_filters
+from geometry_msgs.msg import Twist
 
-import cv2
-from cv_bridge import CvBridge, CvBridgeError
-
+from player import Player
 
 class PlayNode:
     def __init__(self, image_window="Camera Input", message_slop=0.1, synchroniser_queuesize=20):
@@ -21,147 +17,24 @@ class PlayNode:
         """
         rospy.init_node("robot_node")
         rospy.loginfo("Initialised PlayNode")
+        self.vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1000)
+        self.player = Player(self.vel_pub)
+        self.laser_sub = rospy.Subscriber("front_laser/scan", LaserScan,
+                self.player.run)
+        self.image_sub = message_filters.Subscriber("front_camera/image_raw",
+                Image)
+        laserSub = message_filters.Subscriber("front_laser/scan", LaserScan)
 
-        self.bridge = CvBridge()
-        self.image_window = image_window
-
-        self.velocity_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1000)
-        self.laser_sub = message_filters.Subscriber("front_laser/scan",
-                LaserScan)
-        self.image_sub = message_filters.Subscriber("front_camera/image_raw", Image)
-
-        self.time_sync = message_filters.ApproximateTimeSynchronizer([self.image_sub, self.laser_sub],
-                                                                     synchroniser_queuesize,
-                                                                     message_slop)
-        self.time_sync.registerCallback(self.perception_cb)
-
-    def perception_cb(self, img_msg, laser_msg):
-        rospy.loginfo("Received new image ({}) and scan ({})".
-                format(img_msg.header.stamp, laser_msg.header.stamp))
-
-        try:
-            image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
-        except CvBridgeError as e:
-            rospy.logerr(e)
-            return
-
-        image = cv2.flip(image, -1)
-        cv2.imshow(self.image_window, image)
-        cv2.waitKey(10)
-
-        #laser_data = self.laser_slice(laser_msg.ranges,50)
-        #threshhold = 1
-        #self.avoid_obstacle(laser_data,threshhold)
-    def run_laser(self, laser_msg):
-
-        laser_data = self.laser_slice(laser_msg.ranges,80)
-        threshhold = 6
-        self.avoid_obstacle(laser_data,threshhold)
-
-    def laser_listener(self):
-        synchroniser_queuesize = 20
-        message_slop =0.1
-        laser_t =message_filters.ApproximateTimeSynchronizer([self.laser_sub],
-                                                                     synchroniser_queuesize,
-                                                                     message_slop)
-        laser_t = laser_t.registerCallback(self.run_laser)
-
-        rospy.spin()
-
-    def avoid_obstacle(self,laser_data=None, threshhold=None):
-        if laser_data is not None and threshhold is not None:
-            if self.obstacle_position(laser_data,threshhold) == -1:
-                rospy.loginfo("Obstacle detected to the left! Evading to the \
-                        right!")
-                sleep(1)
-                self.set_velocities(0,-0.5) #turn right
-            elif self.obstacle_position(laser_data,threshhold) == 0:
-                rospy.loginfo("Obstacle detected in front! Evading to the \
-                        right!")
-                sleep(1)
-                self.set_velocities(0,-0.5) #turn right
-
-            elif self.obstacle_position(laser_data,threshhold) == -1:
-                rospy.loginfo("Obstacle detected to the right! Evading to the \
-                        left!")
-                sleep(1)
-                self.set_velocities(0,0.5) #turn left
-            else:
-                rospy.loginfo("No obstacle detected! Moving randomly!")
-                self.set_velocities(rd.random(),2*(rd.random()-0.5))
-
-
-    def obstacle_position(self,laser_data=None, threshhold=None):
-        if laser_data is not None and threshhold is not None:
-            middle = int(self.get_laser_datasize(laser_data)/2)
-            laser_middle_data =[laser_data[middle-1],laser_data[middle],laser_data[middle+1]]
-            laser_left_data= laser_data[:middle-1]
-            laser_right_data = laser_data[middle+1:]
-            print(laser_middle_data)
-            for data in laser_middle_data:
-                try:
-                    if data<threshhold:
-                        print(data)
-                        return 0
-                except:
-                    pass
-            for data in laser_right_data:
-                try:
-                    if data<threshhold:
-                        print(data)
-                        return 1
-                except:
-                    pass
-
-            for data in laser_left_data:
-                try:
-                    if data<threshhold:
-                        print(data)
-                        return -1
-                except:
-                    pass
-            return -5
-
-        else:
-            raise ValueError("Didn't pass an argument!\n");
-            exit(-1)
-
-
-    def laser_slice(self,raw_laser_data=None,p=None):
-        if raw_laser_data is not None and p is not None:
-            if self.get_laser_datasize(raw_laser_data)<p:
-                raise ValueError("p is bigger than raw_laser_data size!\n")
-                exit(-1)
-            return raw_laser_data[p:-p]
-        else:
-            raise ValueError("Passed wrong argument to function!\n")
-            exit(-1)
-
-    def set_velocities(self, linear, angular):
-        msg = Twist()
-        msg.linear.x = linear
-        msg.angular.z = angular
-        self.velocity_pub.publish(msg)
-
-    def get_laser_datasize(self,laser_data):
-        """
-        There is no __len__ implementation of the PlayNode object
-        """
-        if laser_data is not None:
-            sum =0
-            for data in laser_data:
-                sum = sum+1
-            return sum
-        else:
-            raise ValueError("Couldn't compute laser data size!\n")
-            exit(-1)
+        self.time_sync = message_filters.ApproximateTimeSynchronizer([self.image_sub,
+            laserSub], synchroniser_queuesize,message_slop)
+        self.time_sync.registerCallback(self.player.camera.show)
 
 
 if __name__ == '__main__':
 
     play_node = PlayNode()
 
-    play_node.laser_listener()
+   # play_node.laser_listener()
     loop_rate = rospy.Rate(10)
     rospy.loginfo("Starting loop")
     while not rospy.is_shutdown():

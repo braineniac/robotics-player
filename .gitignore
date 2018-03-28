@@ -1,3 +1,6 @@
+#pyc Files
+*.pyc
+
 # Backups
 *swap
 *~
