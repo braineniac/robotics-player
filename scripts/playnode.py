@@ -14,6 +14,12 @@ class PlayNode:
         """
         :param message_slop: Messages with a header.stamp within message_slop
         seconds of each other will be considered to be synchronisable
+
+        TODO: feat_betterplaynode, priority 3
+            Change the attributes to a dictionaries and add init functions to
+            initialise them. That means that the actual rostopic strings should
+            be only in the main function, the playnode init functions should be
+            generic.
         """
         rospy.init_node("robot_node")
         rospy.loginfo("Initialised PlayNode")
@@ -34,7 +40,6 @@ if __name__ == '__main__':
 
     play_node = PlayNode()
 
-   # play_node.laser_listener()
     loop_rate = rospy.Rate(10)
     rospy.loginfo("Starting loop")
     while not rospy.is_shutdown():

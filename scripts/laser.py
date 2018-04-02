@@ -3,6 +3,10 @@ class Laser:
         self.data = None
 
     def slice(self,p=None):
+        """
+        TODO: feat_tools, priority 3
+            Move slice and getDataSize to a new module called tools.py.
+        """
         if p is not None:
             if self.getDataSize(self.data)<p:
                 raise ValueError("p is bigger than raw_laser_data size!\n")
@@ -13,11 +17,27 @@ class Laser:
             exit(-1)
 
     def save(self,laser_msg=None):
+        """
+        Saves the read data from the scan into an attribute.
+        """
         if not isinstance(laser_msg, Laser) and laser_msg is not None:
             self.data = laser_msg.ranges
             return(laser_msg.ranges)
 
+    def average(self, laser_msg):
+        """
+        TODO: feat_averaging, priority 5
+            Implement an averaging function that saves the relevant laser scan
+            data that are reliable(also from intensities), saves them in an
+            attribute and after 5 calls, it sets the data attribute. But leave
+            the save function here after you are done, just in case.
+        """
+        pass
+
     def getDataSize(self, laser_data):
+        """
+        TODO: see slice
+        """
         if laser_data is not None:
             sum =0
             for data in laser_data:
@@ -27,6 +47,11 @@ class Laser:
             raise ValueError("Couldn't compute laser data size!\n")
 
     def obstacle_position(self,threshhold=0):
+        """
+        TODO: feat_enum_pos, priority 5
+            Implement an enum to return where the object is, instead of the
+            numbers. Change this also in players avoid_obstacle.
+        """
         if self.data is None:
             return -5
         elif threshhold > 0:

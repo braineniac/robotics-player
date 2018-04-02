@@ -14,6 +14,13 @@ class Player(object):
         self.run()
 
     def run(self, laser_msg=None):
+        """
+        This is the laserscan callback function. It will be called in a loop
+        with the rospy rate.
+        TODO: fix_parameters, priority 5
+            Play around the simulation and set a better distance and slice in
+            the the lasers obstacle position.
+        """
         if laser_msg is not None:
             self.laser.save(laser_msg)
             distance = 3
@@ -41,6 +48,13 @@ class Player(object):
         self.__set_velocities(0,0)
 
     def avoid_obstacle(self,distance=None):
+        """
+        TODO: feat_better_avoid, priority 5
+            Make the chance of turning 50% and forward movement 50%.
+            Also play around a bit with the velocities and try to set better
+            ones. Also add sleep for a sec or half a sec, so it moves a bit
+            slower.
+        """
         if distance > 0:
             if self.laser.obstacle_position(distance) == -1:
                 rospy.loginfo("Obstacle detected to the left! Evading to the \
@@ -62,10 +76,17 @@ class Player(object):
                     self.forward(0.50)
                 else:
                     self.turnLeft(0.5)
-
         else:
             raise ValueError("Obstacle distance can't be negative!\n")
 
+    def detect_component(self):
+        """
+        TODO: feat_comp_det, priority 4
+            Make an enum for the field components, then based on color it should
+            try to guess its dimensions approximately, if it checks out, do
+            loginfo that it was detected. Use the data stored in the Camera und
+            Laser.
+        """
 
     def __set_velocities(self,linear=0, angular=None):
         if linear >= 0 and angular is not None:
