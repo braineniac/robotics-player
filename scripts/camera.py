@@ -7,19 +7,22 @@ class Camera:
     def __init__(self):
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
+        self.image_data = None
 
-    def show(self,img_msg=None, laser_msg=None):
+    def show(self,img_msg=None):
         """
         TODO: feat_cameracallback, priority 4
             Move the time sync functions from the playnode here. The camera
             should'nt show up automatically.
         """
+        rospy.loginfo("Hello there!\n")
         try:
             image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:
             rospy.logerr(e)
             return
         image = cv2.flip(image,-1)
+        self.image_data = image
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
 

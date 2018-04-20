@@ -25,13 +25,9 @@ class PlayNode:
         rospy.loginfo("Initialised PlayNode")
         self.vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1000)
         self.player = Player(self.vel_pub)
-        self.image_sub = message_filters.Subscriber("front_camera/image_raw",
-                Image)
-        self.laser_sub = message_filters.Subscriber("front_laser/scan", LaserScan)
-        self.time_sync = message_filters.ApproximateTimeSynchronizer([self.image_sub,
-            self.laser_sub], synchroniser_queuesize,message_slop)
-        self.time_sync.registerCallback(self.player.camera.show)
-        self.laser_sub.registerCallback(self.player.run)
+        self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,self.player.run)
+        self.img_sub = rospy.Subscriber("front_camera/image_raw", Image,self.player.camera.show)
+        rospy.spin()
 
 if __name__ == '__main__':
 
