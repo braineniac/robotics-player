@@ -11,7 +11,6 @@ class Player(object):
         self.laser = Laser()
         self.camera = Camera()
         self.vel_pub = vel_pub
-        self.run()
 
     def run(self, laser_msg=None):
         """
@@ -21,6 +20,7 @@ class Player(object):
             Play around the simulation and set a better distance and slice in
             the the lasers obstacle position.
         """
+        rospy.loginfo("laser data\n")
         if laser_msg is not None:
             self.laser.save(laser_msg)
             distance = 3
@@ -64,7 +64,7 @@ class Player(object):
                 rospy.loginfo("Obstacle detected in front! Evading to the \
                         right!")
                 self.turnRight(0.5)
-            elif self.laser.obstacle_position(distance) == -1:
+            elif self.laser.obstacle_position(distance) == 1:
                 rospy.loginfo("Obstacle detected to the right! Evading to the \
                     left!")
                 self.turnLeft(0.5)
