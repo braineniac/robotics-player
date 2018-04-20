@@ -1,6 +1,6 @@
 class Laser:
     def __init__(self):
-        self.data = None
+        self.data = []
 
     def slice(self,p=None):
         """
@@ -16,15 +16,28 @@ class Laser:
             raise ValueError("Passed wrong argument to function!\n")
             exit(-1)
 
-    def save(self,laser_msg=None):
+    def checkReliability(slef, laser_msg=None, threshold=0.5):
+        """
+        Retursn only reliable ranges. Sets all unreliable values to nan.
+        """
+        if laser_msg is not None:
+            for i in range(len(laser_msg.ranges)):
+                if laser_msg.intensities[i] < threshold:
+                    laser_msg.ranges[i] = float('nan')
+            return laser_msg.ranges
+
+    def save(self,laser_ranges=None):
         """
         Saves the read data from the scan into an attribute.
         """
-        if not isinstance(laser_msg, Laser) and laser_msg is not None:
-            self.data = laser_msg.ranges
-            return(laser_msg.ranges)
+        if not isinstance(laser_ranges, list) and laser_ranges is not None:
+            if(len(self.data) > 5):
+                return false
+            else:
+                self.data.append(laser_ranges)
+                return true
 
-    def average(self, laser_msg):
+    def average(self, laser_ranges):
         """
         TODO: feat_averaging, priority 5
             Implement an averaging function that saves the relevant laser scan
@@ -32,6 +45,9 @@ class Laser:
             attribute and after 5 calls, it sets the data attribute. But leave
             the save function here after you are done, just in case.
         """
+        if laser_ranges is not None sinstance(laser_ranges, list):
+
+
         pass
 
     def getDataSize(self, laser_data):
