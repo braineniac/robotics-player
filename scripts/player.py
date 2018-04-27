@@ -22,7 +22,12 @@ class Player(object):
         """
         rospy.loginfo("laser data\n")
         if laser_msg is not None:
-            self.laser.save(laser_msg)
+            if self.laser.save(self.laser.checkReliability(laser_msg)):
+                self.laser.average_data = self.laser.processData(self.laser.data)
+                self.laser.data = [] #cleans data in memory
+                rospy.loginfo(self.laser.average_data)
+
+
             distance = 3
             self.avoid_obstacle(distance)
 
@@ -97,5 +102,3 @@ class Player(object):
         else:
             raise ValueError("Wrong arguments passed to set_velocities!\n")
             exit(-1)
-
-
