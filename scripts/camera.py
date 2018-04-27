@@ -15,7 +15,6 @@ class Camera:
             Move the time sync functions from the playnode here. The camera
             should'nt show up automatically.
         """
-        rospy.loginfo("Hello there!\n")
         try:
             image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:

@@ -12,10 +12,10 @@ class Laser:
             Move slice and getDataSize to a new module called tools.py.
         """
         if p is not None:
-            if self.getDataSize(self.data)<p:
+            if self.getDataSize(self.average_data)<p:
                 raise ValueError("p is bigger than raw_laser_data size!\n")
                 exit(-1)
-            return self.data[p:-p]
+            return self.average_data[p:-p]
         else:
             raise ValueError("Passed wrong argument to function!\n")
             exit(-1)
@@ -60,7 +60,7 @@ class Laser:
                 while(left == None):
                     try:
                         if(np.isnan(laser_ranges[i+offset])):
-                            offset++
+                            offset =offset  +1
                         else:
                             left = laser_ranges[i+offset]
                     except IndexError:
@@ -70,7 +70,7 @@ class Laser:
                 while(right == None):
                     try:
                         if(np.isnan(laser_ranges[i-offset])):
-                            offset++
+                            offset=offset +1
                         else:
                             right = laser_ranges[i-offset]
                     except IndexError:
@@ -111,12 +111,13 @@ class Laser:
             Implement an enum to return where the object is, instead of the
             numbers. Change this also in players avoid_obstacle.
         """
-        if self.data is None:
+        if self.average_data == []:
             return -5
         elif threshhold > 0:
             middle_raw = int(self.getDataSize(self.average_data)/2)
             laser_data = self.slice(middle_raw-15)
             middle_sliced = int(self.getDataSize(laser_data)/2)
+            rospy.loginfo("{} {}".format(middle_raw, laser_data))
             laser_middle_data =[laser_data[middle_sliced-1],
                     laser_data[middle_sliced],laser_data[middle_sliced+1]]
             laser_left_data= laser_data[:middle_sliced-1]

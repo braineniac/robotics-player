@@ -26,10 +26,8 @@ class Player(object):
                 self.laser.average_data = self.laser.processData(self.laser.data)
                 self.laser.data = [] #cleans data in memory
                 rospy.loginfo(self.laser.average_data)
-
-
-            distance = 3
-            self.avoid_obstacle(distance)
+                distance = 3
+                self.avoid_obstacle(distance)
 
     def forward(self,speed=0):
         if speed > 0:
