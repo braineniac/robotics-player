@@ -20,13 +20,11 @@ class Player(object):
             Play around the simulation and set a better distance and slice in
             the the lasers obstacle position.
         """
-        rospy.loginfo("laser data\n")
         if laser_msg is not None:
             if self.laser.save(self.laser.checkReliability(laser_msg)):
                 self.laser.average_data = self.laser.processData(self.laser.data)
                 self.laser.data = [] #cleans data in memory
-                rospy.loginfo(self.laser.average_data)
-                distance = 3
+                distance = 0.7
                 self.avoid_obstacle(distance)
 
     def forward(self,speed=0):

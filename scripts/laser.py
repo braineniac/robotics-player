@@ -27,7 +27,7 @@ class Laser:
         if laser_msg is not None:
             laser_ranges = list(laser_msg.ranges)
             for i in range(len(laser_ranges)):
-                if laser_msg.intensities[i] > threshold:
+                if laser_msg.intensities[i] <= threshold:
                     laser_ranges[i] = np.nan
             return laser_ranges
 
@@ -48,41 +48,28 @@ class Laser:
         """
         return np.mean(np.array(laser_ranges_lists), axis=0)
 
-    def interpolateMissing(self, laser_ranges):
+    def interpolateMissing(self, laser_ranges, max_interpol_dist=2):
         """
         Returns list with interpolated values for NaNs in passed list.
         """
         for i,val in enumerate(laser_ranges):
             if np.isnan(val):
-                left = None
-                right = None
-                offset = 0
-                while(left == None):
+                left = np.inf
+                right = np.inf
+                for offset in range(1,max_interpol_dist):
                     try:
-                        if(np.isnan(laser_ranges[i+offset])):
-                            offset =offset  +1
-                        else:
+                        if(not np.isnan(laser_ranges[i+offset])):
                             left = laser_ranges[i+offset]
+                            break
                     except IndexError:
-                        left = np.nan
-
-                offset = 0
-                while(right == None):
+                        pass
+                for offset in range(1,max_interpol_dist):
                     try:
-                        if(np.isnan(laser_ranges[i-offset])):
-                            offset=offset +1
-                        else:
+                        if(not np.isnan(laser_ranges[i-offset])):
                             right = laser_ranges[i-offset]
+                            break
                     except IndexError:
-                        right = np.nan
-
-                if(np.isnan(left) and np.isnan(right)):
-                    left = np.inf
-                elif(np.isnan(left)):
-                    left = right
-                elif(np.isnan(right)):
-                    right = left
-
+                        pass
                 val = np.average([left,right])
 
         return laser_ranges
@@ -115,9 +102,8 @@ class Laser:
             return -5
         elif threshhold > 0:
             middle_raw = int(self.getDataSize(self.average_data)/2)
-            laser_data = self.slice(middle_raw-15)
+            laser_data = self.slice(middle_raw-22)
             middle_sliced = int(self.getDataSize(laser_data)/2)
-            rospy.loginfo("{} {}".format(middle_raw, laser_data))
             laser_middle_data =[laser_data[middle_sliced-1],
                     laser_data[middle_sliced],laser_data[middle_sliced+1]]
             laser_left_data= laser_data[:middle_sliced-1]
