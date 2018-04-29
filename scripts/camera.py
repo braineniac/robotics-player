@@ -21,7 +21,7 @@ class Camera:
             should'nt show up automatically.
         """
         try:
-            image = self.bridge.imgmsg_to_cv2(img_msg, "rgb8")
+            image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:
             rospy.logerr(e)
             return
@@ -54,10 +54,20 @@ class Camera:
 	plt.show()
 	
     def detect_color(self, image=None):
-	# values are RGB, testing for green
-	lower = np.array([0,0,0])
-	upper = np.array([0,255,0])
+	# values are BGR
+	lowerG = np.array([0,0,0])
+	upperG = np.array([0,255,0])
+	lowerB = np.array([0,0,0])
+	upperB = np.array([255,0,0])
+	lowerY = np.array([0,0,0])
+	upperY = np.array([0,255,255])
 	
-	mask = cv2.inRange(image, lower, upper)
+	maskG = cv2.inRange(image, lowerG, upperG)	
+	maskB = cv2.inRange(image, lowerB, upperB)
+	maskY = cv2.inRange(image, lowerY, upperY)
+	
+	maskGB = cv2.bitwise_or(maskG, maskB) #combine 3 masks into one
+	mask = cv2.bitwise_or(maskGB, maskY)
+
 	output = cv2.bitwise_and(image, image, mask = mask)
 	cv2.imshow(self.colors_window, output)
