@@ -2,12 +2,14 @@ import rospy
 import cv2
 from cv_bridge import CvBridge,CvBridgeError
 from matplotlib import pyplot as plt
+import numpy as np
 
 class Camera:
 
     def __init__(self):
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
+	self.colors_window = "Detected Colors"
         self.image_data = None
 	
 	self.histograms_window = "histograms"
@@ -19,7 +21,7 @@ class Camera:
             should'nt show up automatically.
         """
         try:
-            image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
+            image = self.bridge.imgmsg_to_cv2(img_msg, "rgb8")
         except CvBridgeError as e:
             rospy.logerr(e)
             return
@@ -36,7 +38,7 @@ class Camera:
         """
 
 
-    def detect_color(self,image=None):
+    def show_histogram(self,image=None):
         """
         TODO: feat_det_color, priority 4
             Extract the color from img_msg and fill the the array with it and
@@ -51,3 +53,11 @@ class Camera:
 	plt.ion()	#interactive mode, otherwise .show holds until window is closed
 	plt.show()
 	
+    def detect_color(self, image=None):
+	# values are RGB, testing for green
+	lower = np.array([0,0,0])
+	upper = np.array([0,255,0])
+	
+	mask = cv2.inRange(image, lower, upper)
+	output = cv2.bitwise_and(image, image, mask = mask)
+	cv2.imshow(self.colors_window, output)
