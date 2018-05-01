@@ -54,20 +54,30 @@ class Camera:
 	plt.show()
 	
     def detect_color(self, image=None):
-	# values are BGR
-	lowerG = np.array([0,0,0])
-	upperG = np.array([0,255,0])
-	lowerB = np.array([0,0,0])
-	upperB = np.array([255,0,0])
-	lowerY = np.array([0,0,0])
-	upperY = np.array([0,255,255])
-	
-	maskG = cv2.inRange(image, lowerG, upperG)	
-	maskB = cv2.inRange(image, lowerB, upperB)
-	maskY = cv2.inRange(image, lowerY, upperY)
+	# values are HSV, using hue+-10 for defining a color. Also while in HSV the
+	# range of hue is 0-360 degrees, openCV uses hue/2 to fit the value into an int.
+
+	lowerG = np.array([50,0,0])
+	upperG = np.array([70,255,255])
+	lowerB = np.array([110,0,0])
+	upperB = np.array([130,255,255])
+	lowerY = np.array([20,0,0])
+	upperY = np.array([40,255,255])
+	"""
+	lowerbottomR = np.array([0,0,0])	#HSV ranges for red, should we need it
+	upperbottomR = np.array([10,255,255])   #since red hue value is 0 we need 2 ranges
+	lowertopR = np.array([170,0,0])
+	uppertopR = np.array([180,255,255])
+	"""
+	imgHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+	maskG = cv2.inRange(imgHSV, lowerG, upperG)	
+	maskB = cv2.inRange(imgHSV, lowerB, upperB)
+	maskY = cv2.inRange(imgHSV, lowerY, upperY)
 	
 	maskGB = cv2.bitwise_or(maskG, maskB) #combine 3 masks into one
 	mask = cv2.bitwise_or(maskGB, maskY)
 
 	output = cv2.bitwise_and(image, image, mask = mask)
 	cv2.imshow(self.colors_window, output)
+
