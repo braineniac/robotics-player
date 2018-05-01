@@ -9,7 +9,7 @@ class Camera:
     def __init__(self):
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
-	self.colors_window = "Detected Colors"
+	self.color_window = "Detected Colors"
         self.image_data = None
 	
 	self.histograms_window = "histograms"
@@ -30,7 +30,12 @@ class Camera:
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
 	self.detect_color(self.image_data)
-	self.detect_contours(self.color_data)
+	rospy.loginfo("Amount of green blobs:")
+	self.detect_contours(self.color_data_G)
+	rospy.loginfo("Amount of blue blobs:")
+	self.detect_contours(self.color_data_B)
+	rospy.loginfo("Amount of yellow blobs:")
+	self.detect_contours(self.color_data_Y)
 
     def callback(self, img_msg=None,laser_msg=None):
         """
@@ -41,11 +46,16 @@ class Camera:
     def detect_color(self, image=None):
 	# values are HSV, using hue+-10 for defining a color. Also while in HSV the
 	# range of hue is 0-360 degrees, openCV uses hue/2 to fit the value into an int.
-
+        """
+        TODO: polish into method which takes two hue values as input and doesn't contain 
+	everything thrice for coding practice.
+        """
 	lowerG = np.array([50,0,0])
 	upperG = np.array([70,255,255])
+
 	lowerB = np.array([110,0,0])
 	upperB = np.array([130,255,255])
+
 	lowerY = np.array([20,0,0])
 	upperY = np.array([40,255,255])
 	"""
@@ -60,21 +70,21 @@ class Camera:
 	maskB = cv2.inRange(imgHSV, lowerB, upperB)
 	maskY = cv2.inRange(imgHSV, lowerY, upperY)
 	
-	maskGB = cv2.bitwise_or(maskG, maskB) #combine 3 masks into one
-	mask = cv2.bitwise_or(maskGB, maskY)
+	outputG = cv2.bitwise_and(image, image, mask = maskG)
+	outputB = cv2.bitwise_and(image, image, mask = maskB)
+	outputY = cv2.bitwise_and(image, image, mask = maskY)
 
-	output = cv2.bitwise_and(image, image, mask = mask)
-	#cv2.imshow(self.colors_window, output)
-	self.color_data = output
-	
-	pxlamount = np.count_nonzero(output)/3
-	rospy.loginfo("number of pixels detected: {}".format(pxlamount))
+	self.color_data_G = outputG
+	self.color_data_B = outputB
+	self.color_data_Y = outputY
+	cv2.imshow(self.color_window, self.color_data_G)
+
 
     def detect_contours(self, image=None):
 	# using FindContours(), which requires binary image
 	img_bgr = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
 	img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-	img_bin = cv2.threshold(img_gray,10,255,cv2.THRESH_BINARY)[1]
+	img_bin = cv2.threshold(img_gray,50,255,cv2.THRESH_BINARY)[1]
 
 	contours = cv2.findContours(img_bin,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[1]
 	
@@ -84,7 +94,7 @@ class Camera:
 	while contours:
 		del contours[0]
 		i = i + 1
-	rospy.loginfo("{} objects detected".format(i))
+	rospy.loginfo("{} blobs".format(i))
 
 
 
@@ -101,3 +111,7 @@ class Camera:
  	  plt.xlim([0,256])
 	plt.ion()	#interactive mode, otherwise .show holds until window is closed
 	plt.show()
+	"""
+	pxlamount = np.count_nonzero(output)/3
+	rospy.loginfo("number of pixels detected: {}".format(pxlamount))
+	"""
