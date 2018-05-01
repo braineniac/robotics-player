@@ -30,6 +30,7 @@ class Camera:
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
 	self.detect_color(self.image_data)
+	self.detect_contours(self.color_data)
 
     def callback(self, img_msg=None,laser_msg=None):
         """
@@ -63,10 +64,29 @@ class Camera:
 	mask = cv2.bitwise_or(maskGB, maskY)
 
 	output = cv2.bitwise_and(image, image, mask = mask)
-	cv2.imshow(self.colors_window, output)
+	#cv2.imshow(self.colors_window, output)
+	self.color_data = output
 	
 	pxlamount = np.count_nonzero(output)/3
 	rospy.loginfo("number of pixels detected: {}".format(pxlamount))
+
+    def detect_contours(self, image=None):
+	# using FindContours(), which requires binary image
+	img_bgr = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+	img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+	img_bin = cv2.threshold(img_gray,10,255,cv2.THRESH_BINARY)[1]
+
+	contours = cv2.findContours(img_bin,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[1]
+	
+	# contours is a list of sequences, so number of objects detected iterates through list
+	# (because size() or len() crapped out when only a single object was present)
+	i=0
+	while contours:
+		del contours[0]
+		i = i + 1
+	rospy.loginfo("{} objects detected".format(i))
+
+
 
 #========================================================================
 #unused but potentially useful code
