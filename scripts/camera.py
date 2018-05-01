@@ -37,22 +37,6 @@ class Camera:
         the relevant data in an attribute.
         """
 
-
-    def show_histogram(self,image=None):
-        """
-        TODO: feat_det_color, priority 4
-            Extract the color from img_msg and fill the the array with it and
-            return an array with the same dimensions, but with enum color
-            names. Relevant is green, yellow, blue.
-        """
-	color = ('b','g','r')
-	for i,col in enumerate(color):
-	  histr = cv2.calcHist([image],[i],None,[256],[0,256])
-	  plt.plot(histr,color = col)
- 	  plt.xlim([0,256])
-	plt.ion()	#interactive mode, otherwise .show holds until window is closed
-	plt.show()
-	
     def detect_color(self, image=None):
 	# values are HSV, using hue+-10 for defining a color. Also while in HSV the
 	# range of hue is 0-360 degrees, openCV uses hue/2 to fit the value into an int.
@@ -80,4 +64,20 @@ class Camera:
 
 	output = cv2.bitwise_and(image, image, mask = mask)
 	cv2.imshow(self.colors_window, output)
+	
+	pxlamount = np.count_nonzero(output)/3
+	rospy.loginfo("number of pixels detected: {}".format(pxlamount))
 
+#========================================================================
+#unused but potentially useful code
+#========================================================================
+
+
+    def show_histogram(self,image=None):
+	color = ('b','g','r')
+	for i,col in enumerate(color):
+	  histr = cv2.calcHist([image],[i],None,[256],[0,256])
+	  plt.plot(histr,color = col)
+ 	  plt.xlim([0,256])
+	plt.ion()	#interactive mode, otherwise .show holds until window is closed
+	plt.show()
