@@ -101,33 +101,22 @@ class Laser:
         if self.average_data == []:
             return -5
         elif threshhold > 0:
-            middle_raw = int(self.getDataSize(self.average_data)/2)
-            laser_data = self.slice(middle_raw-22)
-            middle_sliced = int(self.getDataSize(laser_data)/2)
-            laser_middle_data =[laser_data[middle_sliced-1],
-                    laser_data[middle_sliced],laser_data[middle_sliced+1]]
-            laser_left_data= laser_data[:middle_sliced-1]
-            laser_right_data = laser_data[middle_sliced+1:]
-            for data in laser_middle_data:
-                try:
-                    if data<threshhold:
-                        return 0
-                except:
-                    pass
-            for data in laser_right_data:
-                try:
-                    if data<threshhold:
-                        return 1
-                except:
-                    pass
+            rospy.loginfo("{}".format(self.average_data))
+            middle = int(self.getDataSize(self.average_data)/2)
+            posphi = 0
+            detected_objs = []
+            for data in self.average_data:
 
-            for data in laser_left_data:
+
                 try:
-                    if data<threshhold:
-                        return -1
+                    if data < threshhold:
+                        rospy.loginfo("{}".format(posphi))
+                        detected_obj = (data, middle - posphi)
+                        detected_objs.append(detected_obj)
                 except:
                     pass
-            return -5
+                posphi += 1
+            return detected_objs
 
         else:
             raise ValueError("The threshhold can't be zero!\n");
