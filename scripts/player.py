@@ -25,7 +25,7 @@ class Player(object):
                 self.laser.average_data = self.laser.processData(self.laser.data)
                 self.laser.data = [] #cleans data in memory
             distance = 1.1
-            self.avoid_obstacle(distance)
+            #self.avoid_obstacle(distance)
 
     def forward(self,speed=0):
         if speed > 0:
@@ -67,18 +67,18 @@ class Player(object):
                 if abs(phi_obj) < phi_view:
                     if phi_obj > 0:
                         rospy.loginfo("Avoiding obstacle, turning right!")
-                        self.turnRight(1)
+            #            self.turnRight(1)
                     else:
                         rospy.loginfo("Avoiding obstacle, turning left!")
-                        self.turnLeft(1)
+            #            self.turnLeft(1)
 
             rospy.loginfo("No obstacle ahead! Moving randomly!")
-            if rd.random() < 0.66:
-                self.forward(0.1)
-            elif rd.random() < 0.81:
-                self.turnRight(0.5)
-            else:
-                self.turnLeft(0.5)
+#            if rd.random() < 0.66:
+#                self.forward(0.1)
+#            elif rd.random() < 0.81:
+#                self.turnRight(0.5)
+#            else:
+#                self.turnLeft(0.5)
         else:
             raise ValueError("Obstacle distance can't be negative!\n")
 
