@@ -27,6 +27,8 @@ class Laser:
         if laser_msg is not None:
             laser_ranges = list(laser_msg.ranges)
             for i in range(len(laser_ranges)):
+                if all([v==0 for v in laser_msg.intensities]):
+                    return laser_ranges
                 if laser_msg.intensities[i] <= threshold:
                     laser_ranges[i] = np.nan
             return laser_ranges
@@ -99,18 +101,14 @@ class Laser:
             numbers. Change this also in players avoid_obstacle.
         """
         if self.average_data == []:
-            return -5
+            return []
         elif threshhold > 0:
-            rospy.loginfo("{}".format(self.average_data))
             middle = int(self.getDataSize(self.average_data)/2)
             posphi = 0
             detected_objs = []
             for data in self.average_data:
-
-
                 try:
                     if data < threshhold:
-                        rospy.loginfo("{}".format(posphi))
                         detected_obj = (data, middle - posphi)
                         detected_objs.append(detected_obj)
                 except:
