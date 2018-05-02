@@ -29,12 +29,12 @@ class Camera:
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
         self.detect_color(self.image_data)
-#        rospy.loginfo("Amount of green blobs:")
-#        self.detect_contours(self.color_data_G)
+        rospy.loginfo("Amount of green blobs:")
+        self.detect_contours(self.color_data_G)
         rospy.loginfo("Amount of blue blobs:")
         self.detect_contours(self.color_data_B)
-#        rospy.loginfo("Amount of yellow blobs:")
-#        self.detect_contours(self.color_data_Y)
+        rospy.loginfo("Amount of yellow blobs:")
+        self.detect_contours(self.color_data_Y)
 
     def callback(self, img_msg=None,laser_msg=None):
         """
@@ -76,23 +76,24 @@ class Camera:
         self.color_data_G = outputG
         self.color_data_B = outputB
         self.color_data_Y = outputY
-#        cv2.imshow(self.color_window, self.color_data_B)
+        
 
     def detect_contours(self, image=None):
         #80 degrees whole view, about half of the pole in 0.68m
 	# using FindContours(), which requires binary image
-        #img_bgr = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
-        #img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-        img_gray = cv2.split(image)[0]
-        img_bin = cv2.threshold(img_gray,50,255,cv2.THRESH_BINARY)[1]
+        img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        img_bin = cv2.threshold(img_gray,0.0001,255,cv2.THRESH_BINARY)[1]
 
-        contours=cv2.findContours(img_bin,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[1]
+        contours=cv2.findContours(img_bin,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[1]
 
 	# contours is a list of sequences, so number of objects detected iterates through list
 	# (because size() or len() crapped out when only a single object was present)
-#        for contour in contours:
-#            rospy.loginfo("{}".format(contour))
-        cv2.imshow(self.color_window, img_gray)
+	cv2.imshow(self.color_window, img_gray)
+        i=0
+        while contours:
+            del contours[0]
+            i = i + 1
+        rospy.loginfo("{} blobs".format(i))
 
         for contour in contours:
             area = cv2.contourArea(contour)
