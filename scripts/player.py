@@ -20,11 +20,12 @@ class Player(object):
             Play around the simulation and set a better distance and slice in
             the the lasers obstacle position.
         """
-        rospy.loginfo("laser data\n")
         if laser_msg is not None:
-            self.laser.save(laser_msg)
-            distance = 3
-            self.avoid_obstacle(distance)
+            if self.laser.save(self.laser.checkReliability(laser_msg)):
+                self.laser.average_data = self.laser.processData(self.laser.data)
+                self.laser.data = [] #cleans data in memory
+            distance = 1.1
+            #self.avoid_obstacle(distance)
 
     def forward(self,speed=0):
         if speed > 0:
@@ -56,26 +57,28 @@ class Player(object):
             slower.
         """
         if distance > 0:
-            if self.laser.obstacle_position(distance) == -1:
-                rospy.loginfo("Obstacle detected to the left! Evading to the \
-                        right!")
-                self.turnRight(0.5)
-            elif self.laser.obstacle_position(distance) == 0:
-                rospy.loginfo("Obstacle detected in front! Evading to the \
-                        right!")
-                self.turnRight(0.5)
-            elif self.laser.obstacle_position(distance) == 1:
-                rospy.loginfo("Obstacle detected to the right! Evading to the \
-                    left!")
-                self.turnLeft(0.5)
-            else:
-                rospy.loginfo("No obstacle detected! Moving randomly!")
-                if rd.random() < 0.33:
-                    self.turnRight(0.5)
-                elif rd.random() < 0.66:
-                    self.forward(0.50)
-                else:
-                    self.turnLeft(0.5)
+            detected_obj = self.laser.obstacle_position(distance)
+            phi_view = 30
+            for data in detected_obj:
+                range_obj, phi_obj = data
+                rospy.loginfo("Obstacle detected! \nDistance: {} \
+                                                  \nDegrees: {} \
+                                                  ".format(range_obj,phi_obj))
+                if abs(phi_obj) < phi_view:
+                    if phi_obj > 0:
+                        rospy.loginfo("Avoiding obstacle, turning right!")
+            #            self.turnRight(1)
+                    else:
+                        rospy.loginfo("Avoiding obstacle, turning left!")
+            #            self.turnLeft(1)
+
+            rospy.loginfo("No obstacle ahead! Moving randomly!")
+#            if rd.random() < 0.66:
+#                self.forward(0.1)
+#            elif rd.random() < 0.81:
+#                self.turnRight(0.5)
+#            else:
+#                self.turnLeft(0.5)
         else:
             raise ValueError("Obstacle distance can't be negative!\n")
 
@@ -97,5 +100,3 @@ class Player(object):
         else:
             raise ValueError("Wrong arguments passed to set_velocities!\n")
             exit(-1)
-
-

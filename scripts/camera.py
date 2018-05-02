@@ -79,6 +79,7 @@ class Camera:
         
 
     def detect_contours(self, image=None):
+        #80 degrees whole view, about half of the pole in 0.68m
 	# using FindContours(), which requires binary image
         img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         img_bin = cv2.threshold(img_gray,0.0001,255,cv2.THRESH_BINARY)[1]
@@ -94,6 +95,16 @@ class Camera:
             i = i + 1
         rospy.loginfo("{} blobs".format(i))
 
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            #rospy.loginfo(area)
+            if cv2.contourArea(contour) > 100:
+                rospy.loginfo("Found blob, area:{}".format(area))
+        i=0
+        while contours:
+            del contours[0]
+            i = i + 1
+        rospy.loginfo("{} blobs".format(i))
 
 
 #========================================================================
