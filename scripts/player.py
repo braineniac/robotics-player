@@ -25,8 +25,8 @@ class Player(object):
                 self.laser.average_data = self.laser.processData(self.laser.data)
                 self.laser.data = [] #cleans data in memory
         distance = 1.1
-        #self.avoid_obstacle(distance)
-        self.detect_component(1.3)
+        self.avoid_obstacle(distance)
+        self.detect_component(2)
 
     def forward(self,speed=0):
         if speed > 0:
@@ -62,24 +62,24 @@ class Player(object):
             phi_view = 30
             for data in detected_obj:
                 range_obj, phi_obj = data
-                rospy.loginfo("Obstacle detected! \nDistance: {} \
-                                                  \nDegrees: {} \
-                                                  ".format(range_obj,phi_obj))
+#                rospy.loginfo("Obstacle detected! \nDistance: {} \
+#                                                  \nDegrees: {} \
+#                                                  ".format(range_obj,phi_obj))
                 if abs(phi_obj) < phi_view:
                     if phi_obj > 0:
                         rospy.loginfo("Avoiding obstacle, turning right!")
-            #            self.turnRight(1)
+                        self.turnRight(1)
                     else:
                         rospy.loginfo("Avoiding obstacle, turning left!")
-            #            self.turnLeft(1)
+                        self.turnLeft(1)
 
             rospy.loginfo("No obstacle ahead! Moving randomly!")
-#            if rd.random() < 0.66:
-#                self.forward(0.1)
-#            elif rd.random() < 0.81:
-#                self.turnRight(0.5)
-#            else:
-#                self.turnLeft(0.5)
+            if rd.random() < 0.66:
+                self.forward(0.1)
+            elif rd.random() < 0.81:
+                self.turnRight(0.5)
+            else:
+                self.turnLeft(0.5)
         else:
             raise ValueError("Obstacle distance can't be negative!\n")
 
@@ -91,26 +91,26 @@ class Player(object):
             for camera_obj in camera_objs:
                 ranges,area,color=camera_obj
                 x1,x2 = ranges
-                phi1 = (x1-60)/10-40
-                phi2 = (x2+60)/10-40
-#                rospy.loginfo("x1:{},x2:{}".format(x1,x2))
-#                rospy.loginfo("phi1:{},phi2:{}".format(phi1,phi2))
+                phi1 = 11*(x1-30)/90-55
+                phi2 = 11*(x2+30)/90-55
+                rospy.loginfo("x1:{},x2:{}".format(x1,x2))
+                rospy.loginfo("phi1:{},phi2:{}".format(phi1,phi2))
                 for laser_obj in detected_objs:
                     distance,laser_phi = laser_obj
-#                    if abs(laser_phi)<50:
-#                        rospy.loginfo("{}".format(laser_obj))
-                    if ((laser_phi>phi1) and (laser_phi<phi2)):
-                        if color != "G" and area>26000:
+                    if abs(laser_phi)<50:
+                        rospy.loginfo("{}".format(laser_obj))
+                    if ((laser_phi>=phi1) and (laser_phi<=phi2)):
+                        if color != "G" and area>10000:
                             if color == "Y":
                                 rospy.loginfo("Detected the yellow goal!")
                             else:
                                 rospy.loginfo("Detected the blue goal!")
                         elif color == "G":
-                            rospy.loginfo("Detected a pole in {} m distance!".format(distance))
+                            rospy.loginfo("Detected a pole in {} m distance and {} degrees".format(distance,laser_phi))
                         elif color == "Y":
-                            rospy.loginfo("Detected a yellow puck in {} m distance!".format(distance))
+                            rospy.loginfo("Detected a yellow puck in {} m distance and {} degrees!".format(distance,laser_phi))
                         elif color == "B":
-                            rospy.loginfo("Detected a blue puck in {} m distance!".format(distance))
+                            rospy.loginfo("Detected a blue puck in {} m distance and {} degree!".format(distance,laser_phi))
 
     def __set_velocities(self,linear=0, angular=None):
         if linear >= 0 and angular is not None:
