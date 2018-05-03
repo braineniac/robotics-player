@@ -12,6 +12,7 @@ class Camera:
         self.color_window = "Detected Colors"
         self.image_data = None
         self.histograms_window = "histograms"
+        self.objects=[]
 
     def show(self,img_msg=None):
         """
@@ -19,6 +20,7 @@ class Camera:
             Move the time sync functions from the playnode here. The camera
             should'nt show up automatically.
         """
+        self.objects = []
         try:
             image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:
@@ -29,12 +31,12 @@ class Camera:
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
         self.detect_color(self.image_data)
-        rospy.loginfo("Amount of green blobs:")
-        self.detect_contours(self.color_data_G)
-        rospy.loginfo("Amount of blue blobs:")
-        self.detect_contours(self.color_data_B)
-        rospy.loginfo("Amount of yellow blobs:")
-        self.detect_contours(self.color_data_Y)
+#        rospy.loginfo("Amount of green blobs:")
+        self.detect_contours(self.color_data_G, "G")
+#        rospy.loginfo("Amount of blue blobs:")
+        self.detect_contours(self.color_data_B, "B")
+#        rospy.loginfo("Amount of yellow blobs:")
+        self.detect_contours(self.color_data_Y, "Y")
 
     def callback(self, img_msg=None,laser_msg=None):
         """
@@ -76,9 +78,8 @@ class Camera:
         self.color_data_G = outputG
         self.color_data_B = outputB
         self.color_data_Y = outputY
-        
 
-    def detect_contours(self, image=None):
+    def detect_contours(self, image=None, color=None):
         #80 degrees whole view, about half of the pole in 0.68m
 	# using FindContours(), which requires binary image
         img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -88,24 +89,25 @@ class Camera:
 
 	# contours is a list of sequences, so number of objects detected iterates through list
 	# (because size() or len() crapped out when only a single object was present)
-	cv2.imshow(self.color_window, img_gray)
-        i=0
-        while contours:
-            del contours[0]
-            i = i + 1
-        rospy.loginfo("{} blobs".format(i))
-
+        contour_x_values=[]
         for contour in contours:
+            x_values=[]
+            for elem in contour:
+                for x,y in elem:
+                    x_values.append(x)
             area = cv2.contourArea(contour)
-            #rospy.loginfo(area)
-            if cv2.contourArea(contour) > 100:
-                rospy.loginfo("Found blob, area:{}".format(area))
-        i=0
-        while contours:
-            del contours[0]
-            i = i + 1
-        rospy.loginfo("{} blobs".format(i))
-
+#            rospy.loginfo("{}".format(x_values))
+            contour_x_values.append(x_values)
+#        rospy.loginfo("Objects:{}".format(self.objects))
+#        rospy.loginfo("Contour size: {}".format(len(contour_x_values)))
+        for border in contour_x_values:
+            x_range = (np.amin(border), np.amax(border))
+            self.objects.append((x_range,area,color))
+#        i=0
+#        while contours:
+#            del contours[0]
+#            i = i + 1
+#        rospy.loginfo("{} blobs".format(i))
 
 #========================================================================
 #unused but potentially useful code
