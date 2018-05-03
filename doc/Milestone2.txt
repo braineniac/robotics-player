@@ -1,0 +1,21 @@
+Goals:
+-test out the code on a real robot
+-implement a detection algorithm for all field components: goals, pucks, poles
+
+Tasks:
+1, rewrite the base code in an object oriented way
+2, implement a better obstacle detection function, return the distance of the
+object and angle from the middle
+3, write an averaging function that takes 5 laser data points and returns
+their average. Also include handling of NaN and inf with some basic error
+correction.
+4, use openCV to recognise colors of the objects seen by the camera. Detect
+their contours, approximate position and count.
+5, combine the information from the camera and laser data to determine an
+objects location in relation to the robot and which field component it is.
+
+Work distribution:
+Alex: 2
+Daniel: 1,5
+Julian: 4
+Lukas: 3
