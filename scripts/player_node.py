@@ -26,7 +26,7 @@ class PlayNode:
         self.vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1000)
         self.player = Player(self.vel_pub)
         self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,self.player.run)
-        self.img_sub = rospy.Subscriber("front_camera/image_raw", Image,self.player.camera.show)
+        self.img_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.player.camera.show)
         rospy.spin()
 
 if __name__ == '__main__':
