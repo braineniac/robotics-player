@@ -1,10 +1,28 @@
+#!/usr/bin/env python
+
 import numpy as np
 import rospy
 
+from std_msgs.msg import String
+from sensor_msgs.msg import LaserScan
+
 class Laser:
     def __init__(self):
+
+        #inialising the node and publishers/subsribers
+        rospy.init_node("laser",anonymous=True)
+        rospy.loginfo("Laser node initialised.")
+        self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,self.show)
+
+        #parametrs
         self.data = []
         self.average_data = []
+
+        #keeps node from exiting
+        rospy.spin()
+
+    def show(self, laser_msg=None):
+        pass
 
     def slice(self,p=None):
         """
@@ -119,3 +137,13 @@ class Laser:
         else:
             raise ValueError("The threshhold can't be zero!\n");
             exit(-1)
+
+if __name__ == '__main__':
+
+    laser = Laser()
+
+    loop_rate = rospy.Rate(10)
+    rospy.loginfo("Starting loop")
+    while not rospy.is_shutdown():
+        # 10 Hz loop
+        loop_rate.sleep()

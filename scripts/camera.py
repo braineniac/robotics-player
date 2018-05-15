@@ -1,18 +1,32 @@
+#!/usr/bin/env python
+
 import rospy
 import cv2
 from cv_bridge import CvBridge,CvBridgeError
 from matplotlib import pyplot as plt
 import numpy as np
 
+from std_msgs.msg import String
+from sensor_msgs.msg import Image
+
 class Camera:
 
     def __init__(self):
+        #inialising the node and publishers/subsribers
+        rospy.init_node("camera",anonymous=True)
+        rospy.loginfo("Camera node initialised.")
+        self.img_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.show)
+
+        #parametrs
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
         self.color_window = "Detected Colors"
         self.image_data = None
         self.histograms_window = "histograms"
         self.objects=[]
+
+        #keeps node from exiting
+        rospy.spin()
 
     def show(self,img_msg=None):
         """
@@ -126,3 +140,12 @@ class Camera:
 	    pxlamount = np.count_nonzero(output)/3
 	    rospy.loginfo("number of pixels detected: {}".format(pxlamount))
 	    """
+if __name__ == '__main__':
+
+    camera = Camera()
+
+    loop_rate = rospy.Rate(10)
+    rospy.loginfo("Starting loop")
+    while not rospy.is_shutdown():
+        # 10 Hz loop
+        loop_rate.sleep()

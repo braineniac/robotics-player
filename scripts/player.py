@@ -1,16 +1,19 @@
+#!/usr/bin/env python
+
 import random as rd
 from time import sleep
 import rospy
 from geometry_msgs.msg import Twist
 
-from camera import Camera
-from laser import Laser
-
 class Player(object):
-    def __init__(self, vel_pub=None):
-        self.laser = Laser()
-        self.camera = Camera()
-        self.vel_pub = vel_pub
+    def __init__(self):
+        #inialising the node and publishers/subsribers
+        rospy.init_node("player",anonymous=True)
+        rospy.loginfo("Player node initialised.")
+        self.vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1000)
+
+        #keeps node from exiting
+        rospy.spin()
 
     def run(self, laser_msg=None):
         """
@@ -120,3 +123,13 @@ class Player(object):
             self.vel_pub.publish(msg)
         else:
             exit(-1)
+
+if __name__ == '__main__':
+
+    player = Player()
+
+    loop_rate = rospy.Rate(10)
+    rospy.loginfo("Starting loop")
+    while not rospy.is_shutdown():
+        # 10 Hz loop
+        loop_rate.sleep()
