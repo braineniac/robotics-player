@@ -4,6 +4,7 @@ from cv_bridge import CvBridge,CvBridgeError
 from matplotlib import pyplot as plt
 import numpy as np
 import tf2_ros
+import tf2_sensor_msgs
 from tf2_geometry_msgs import PointStamped
 from geometry_msgs.msg import Point
 
@@ -121,10 +122,10 @@ class Camera:
         pc_kinect = pointcloud
         if pc_kinect:
             rospy.loginfo("pointcloud exists")
-            try:
-                pc_base = self.tf_buf.transform(pc_kinect, "base_link")
-            except:
-                pass
+            now = rospy.Time.now()
+            pc_base_trans = self.tf_buf.lookup_transform("robot1/kinect_rgb_frame",
+                    "robot1/kinect_link",now)
+            pc_base_ptcloud =tf2_sensor_msgs.do_transform_cloud(pointcloud,pc_base_trans)
         else:
             rospy.loginfo("no pointcloud")
 
