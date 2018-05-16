@@ -4,6 +4,9 @@ from cv_bridge import CvBridge,CvBridgeError
 from matplotlib import pyplot as plt
 import numpy as np
 import tf2_ros
+from tf2_geometry_msgs import PointStamped
+from geometry_msgs.msg import Point
+
 
 class Camera:
 
@@ -14,9 +17,9 @@ class Camera:
         self.image_data = None
         self.histograms_window = "histograms"
         self.objects=[]
-	
-	self.tf_buf = tf2_ros.Buffer()
-	self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
+
+        self.tf_buf = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
 
     def show(self,img_msg=None):
         """
@@ -82,7 +85,7 @@ class Camera:
         self.color_data_G = outputG
         self.color_data_B = outputB
         self.color_data_Y = outputY
-	cv2.imshow(self.color_window, self.color_data_Y)
+        cv2.imshow(self.color_window, self.color_data_Y)
 
     def detect_contours(self, image=None, color=None):
         #80 degrees whole view, about half of the pole in 0.68m
@@ -115,12 +118,15 @@ class Camera:
 #        rospy.loginfo("{} blobs".format(i))
 
     def get_pointcloud(self, pointcloud=None):
-	pc_kinect = pointcloud
-	if pc_kinect:
-	    rospy.loginfo("pointcloud exists")
-	else:
-	    rospy.loginfo("no pointcloud")
-	pc_base = self.tf_buf.transform(pc_kinect, "base_link")
+        pc_kinect = pointcloud
+        if pc_kinect:
+            rospy.loginfo("pointcloud exists")
+            try:
+                pc_base = self.tf_buf.transform(pc_kinect, "base_link")
+            except:
+                pass
+        else:
+            rospy.loginfo("no pointcloud")
 
 #========================================================================
 #unused but potentially useful (read: useless) code
