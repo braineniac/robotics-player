@@ -3,7 +3,7 @@ import sys
 
 import rospy
 from std_msgs.msg import String
-from sensor_msgs.msg import LaserScan, Image
+from sensor_msgs.msg import LaserScan, Image, PointCloud2
 import message_filters
 from geometry_msgs.msg import Twist
 
@@ -27,6 +27,8 @@ class PlayNode:
         self.player = Player(self.vel_pub)
         self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,self.player.run)
         self.img_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.player.camera.show)
+	self.point_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.player.camera.get_pointcloud)
+
         rospy.spin()
 
 if __name__ == '__main__':

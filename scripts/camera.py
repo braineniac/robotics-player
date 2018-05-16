@@ -78,6 +78,7 @@ class Camera:
         self.color_data_G = outputG
         self.color_data_B = outputB
         self.color_data_Y = outputY
+	cv2.imshow(self.color_window, self.color_data_Y)
 
     def detect_contours(self, image=None, color=None):
         #80 degrees whole view, about half of the pole in 0.68m
@@ -109,8 +110,15 @@ class Camera:
 #            i = i + 1
 #        rospy.loginfo("{} blobs".format(i))
 
+    def get_pointcloud(self, pointcloud=None):
+	pc_kinect = pointcloud
+	if pc_kinect:
+	    rospy.loginfo("pointcloud exists")
+	else:
+	    rospy.loginfo("no pointcloud")
+
 #========================================================================
-#unused but potentially useful code
+#unused but potentially useful (read: useless) code
 #========================================================================
 
 
