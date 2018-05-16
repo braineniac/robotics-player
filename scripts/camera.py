@@ -3,6 +3,7 @@ import cv2
 from cv_bridge import CvBridge,CvBridgeError
 from matplotlib import pyplot as plt
 import numpy as np
+import tf2_ros
 
 class Camera:
 
@@ -13,6 +14,9 @@ class Camera:
         self.image_data = None
         self.histograms_window = "histograms"
         self.objects=[]
+	
+	self.tf_buf = tf2_ros.Buffer()
+	self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
 
     def show(self,img_msg=None):
         """
@@ -116,6 +120,7 @@ class Camera:
 	    rospy.loginfo("pointcloud exists")
 	else:
 	    rospy.loginfo("no pointcloud")
+	pc_base = self.tf_buf.transform(pc_kinect, "base_link")
 
 #========================================================================
 #unused but potentially useful (read: useless) code
