@@ -5,6 +5,7 @@ import cv2
 from cv_bridge import CvBridge,CvBridgeError
 from matplotlib import pyplot as plt
 import numpy as np
+from team3_msgs.msg import KinectObj, KinectObjs
 
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
@@ -24,6 +25,7 @@ class Camera:
         self.image_data = None
         self.histograms_window = "histograms"
         self.objects=[]
+        self.pub = rospy.Publisher("whatever", KinectObjs)
 
         #keeps node from exiting
         rospy.spin()
@@ -51,6 +53,7 @@ class Camera:
         self.detect_contours(self.color_data_B, "B")
 #        rospy.loginfo("Amount of yellow blobs:")
         self.detect_contours(self.color_data_Y, "Y")
+        self.pub.publish(self.objects)
 
     def callback(self, img_msg=None,laser_msg=None):
         """
@@ -115,8 +118,12 @@ class Camera:
 #        rospy.loginfo("Objects:{}".format(self.objects))
 #        rospy.loginfo("Contour size: {}".format(len(contour_x_values)))
         for border in contour_x_values:
-            x_range = (np.amin(border), np.amax(border))
-            self.objects.append((x_range,area,color))
+            msg = KinectObj()
+            msg.lower = np.amin(border)
+            msg.upper = np.amax(border)
+            msg.area = area
+            msg.color = color
+            self.objects.kinectObjList.append(msg)
 #        i=0
 #        while contours:
 #            del contours[0]
