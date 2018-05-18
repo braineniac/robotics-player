@@ -9,12 +9,15 @@ from team3_msgs.msg import KinectObj, KinectObjs
 
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
+import tf2_ros
+import tf2_sensor_msgs
+from tools import rosprint
 
-class Camera:
+class CameraNode:
 
     def __init__(self):
         #inialising the node and publishers/subsribers
-        rospy.init_node("camera",anonymous=True)
+        rospy.init_node("camera_node",anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.img_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.show)
         self.depth_sub = rospy.Subscriber("camera_depth", self.callback)
@@ -29,6 +32,9 @@ class Camera:
 
         #keeps node from exiting
         rospy.spin()
+
+        self.tf_buf = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
 
     def show(self,img_msg=None):
         """
@@ -95,6 +101,7 @@ class Camera:
         self.color_data_G = outputG
         self.color_data_B = outputB
         self.color_data_Y = outputY
+        cv2.imshow(self.color_window, self.color_data_Y)
 
     def detect_contours(self, image=None, color=None):
         #80 degrees whole view, about half of the pole in 0.68m
@@ -131,7 +138,7 @@ class Camera:
 #        rospy.loginfo("{} blobs".format(i))
 
 #========================================================================
-#unused but potentially useful code
+#unused but potentially useful (read: useless) code
 #========================================================================
 
 
@@ -149,7 +156,7 @@ class Camera:
 	    """
 if __name__ == '__main__':
 
-    camera = Camera()
+    camera_node = CameraNode()
 
     loop_rate = rospy.Rate(10)
     rospy.loginfo("Starting loop")

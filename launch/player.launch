@@ -12,10 +12,11 @@
     </group>
 
     <group if="$(arg use_python)">
-      <node pkg="player" name="player" type="player.py" output="screen"/>
-      <node pkg="player" name="camera" type="camera_node.py" output="screen"/>
+      <node pkg="player" name="player_node" type="player_node.py" output="screen"/>
+      <node pkg="player" name="match_node" type="player_node.py" output="screen"/>
+      <node pkg="player" name="camera_node" type="camera_node.py" output="screen"/>
       <node pkg="player" name="tf_node" type="tf_node.py" output="screen"/>
-      <node pkg="player" name="laser" type="laser_node.py" output="screen"/>
+      <node pkg="player" name="laser_node" type="laser_node.py" output="screen"/>
     </group>
    </group>
 </launch>
