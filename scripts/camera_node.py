@@ -17,7 +17,7 @@ class Camera:
         rospy.init_node("camera",anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.img_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.show)
-
+        self.depth_sub = rospy.Subscriber("camera_depth", self.callback)
         #parametrs
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -25,7 +25,7 @@ class Camera:
         self.image_data = None
         self.histograms_window = "histograms"
         self.objects=[]
-        self.pub = rospy.Publisher("whatever", KinectObjs)
+        self.pub = rospy.Publisher("camera_objs", KinectObjs)
 
         #keeps node from exiting
         rospy.spin()
