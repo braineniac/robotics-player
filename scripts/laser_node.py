@@ -6,14 +6,18 @@ import rospy
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 
-class Laser:
+from tools import rosprint
+
+from team3_msgs import *
+
+class LaserNode:
     def __init__(self):
 
         #inialising the node and publishers/subsribers
-        rospy.init_node("laser",anonymous=True)
-        rospy.loginfo("Laser node initialised.")
+        rospy.init_node("laser_node",anonymous=True)
+        rospy.loginfo("initialised laser node!")
         self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,self.show)
-
+        self.scanned_obj_pub = rospy.Publisher("scanned_objs", ScannedObjs, queue_size=10)
         #parametrs
         self.data = []
         self.average_data = []
@@ -140,10 +144,9 @@ class Laser:
 
 if __name__ == '__main__':
 
-    laser = Laser()
+    laser = LaserNode()
 
     loop_rate = rospy.Rate(10)
-    rospy.loginfo("Starting loop")
     while not rospy.is_shutdown():
         # 10 Hz loop
         loop_rate.sleep()
