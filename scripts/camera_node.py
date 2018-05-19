@@ -53,7 +53,8 @@ class CameraNode:
         self.image_data = image
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
-        self.detect_color(self.image_data)
+	self.filter(self.image_data)
+        self.detect_color(self.image_blurred)
 #        rospy.loginfo("Amount of green blobs:")
         self.detect_contours(self.color_data_G, "G")
 #        rospy.loginfo("Amount of blue blobs:")
@@ -61,6 +62,9 @@ class CameraNode:
 #        rospy.loginfo("Amount of yellow blobs:")
         self.detect_contours(self.color_data_Y, "Y")
         self.pub.publish(self.objects)
+
+    def filter(self, image=None):
+	self.image_blurred = cv2.medianBlur(image, 7)
 
     def detect_color(self, image=None):
 	# values are HSV, using hue+-10 for defining a color. Also while in HSV the
