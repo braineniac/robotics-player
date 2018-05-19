@@ -38,7 +38,8 @@ class Camera:
         self.image_data = image
         cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
-        self.detect_color(self.image_data)
+	self.filter(self.image_data)
+        self.detect_color(self.image_blurred)
 #        rospy.loginfo("Amount of green blobs:")
         self.detect_contours(self.color_data_G, "G")
 #        rospy.loginfo("Amount of blue blobs:")
@@ -51,6 +52,9 @@ class Camera:
         TODO: See show. This should be the new callback function. Save some of
         the relevant data in an attribute.
         """
+
+    def filter(self, image=None):
+	self.image_blurred = cv2.medianBlur(image, 7)
 
     def detect_color(self, image=None):
 	# values are HSV, using hue+-10 for defining a color. Also while in HSV the
