@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from team3_msgs import *
+from team3_msgs.msg import *
 
 from tools import rosprint
 
@@ -24,9 +24,9 @@ class MatchNode:
         if camera_msg:
             self.current_camera_msg = camera_msg
 
- if __name__ == '__main__':
-     match_node = MatchNode()
+if __name__ == '__main__':
+    match_node = MatchNode()
 
-     loop_rate = rospy.Rate(10)
-     while not rospy.is_shutdown():
-         loop_rate.sleep()
+    loop_rate = rospy.Rate(10)
+    while not rospy.is_shutdown():
+        loop_rate.sleep()

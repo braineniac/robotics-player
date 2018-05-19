@@ -8,7 +8,7 @@ import numpy as np
 from team3_msgs.msg import KinectObj, KinectObjs
 
 from std_msgs.msg import String
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image,PointCloud2
 import tf2_ros
 import tf2_sensor_msgs
 from tools import rosprint
@@ -20,15 +20,15 @@ class CameraNode:
         rospy.init_node("camera_node",anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.img_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.show)
-        self.depth_sub = rospy.Subscriber("camera_depth", self.callback)
+        self.depth_sub = rospy.Subscriber("camera_depth", PointCloud2 ,self.callback)
         #parametrs
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
         self.color_window = "Detected Colors"
         self.image_data = None
         self.histograms_window = "histograms"
-        self.objects=[]
-        self.pub = rospy.Publisher("camera_objs", KinectObjs)
+        self.objects=KinectObjs().kinectObjList
+        self.pub = rospy.Publisher("camera_objs", KinectObjs, queue_size=1000)
 
         #keeps node from exiting
         rospy.spin()
@@ -130,7 +130,7 @@ class CameraNode:
             msg.upper = np.amax(border)
             msg.area = area
             msg.color = color
-            self.objects.kinectObjList.append(msg)
+            self.objects.append(msg)
 #        i=0
 #        while contours:
 #            del contours[0]

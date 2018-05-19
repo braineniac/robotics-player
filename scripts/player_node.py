@@ -3,8 +3,7 @@
 import random as rd
 import rospy
 from geometry_msgs.msg import Twist
-from team3_msgs import DetectedObjs,DetectedObj
-
+from team3_msgs.msg import DetectedObjs,DetectedObj,ScannedObj,ScannedObj,KinectObj,KinectObj
 from tools import rosprint
 
 class PlayerNode:
