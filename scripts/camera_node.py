@@ -20,7 +20,7 @@ class CameraNode:
         rospy.init_node("camera_node",anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.img_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.show)
-        self.depth_sub = rospy.Subscriber("camera_depth", PointCloud2 ,self.callback)
+        self.depth_sub = rospy.Subscriber("camera_depth", PointCloud2 ,self.pt_cb)
         #parametrs
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -35,6 +35,9 @@ class CameraNode:
 
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
+
+    def pt_cb(self, pt_msg):
+        pass
 
     def show(self,img_msg=None):
         """
@@ -60,12 +63,6 @@ class CameraNode:
 #        rospy.loginfo("Amount of yellow blobs:")
         self.detect_contours(self.color_data_Y, "Y")
         self.pub.publish(self.objects)
-
-    def callback(self, img_msg=None,laser_msg=None):
-        """
-        TODO: See show. This should be the new callback function. Save some of
-        the relevant data in an attribute.
-        """
 
     def detect_color(self, image=None):
 	# values are HSV, using hue+-10 for defining a color. Also while in HSV the
@@ -159,7 +156,6 @@ if __name__ == '__main__':
     camera_node = CameraNode()
 
     loop_rate = rospy.Rate(10)
-    rospy.loginfo("Starting loop")
     while not rospy.is_shutdown():
         # 10 Hz loop
         loop_rate.sleep()

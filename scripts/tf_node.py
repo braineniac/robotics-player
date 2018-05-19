@@ -33,16 +33,14 @@ class TFNode:
     def depth_sub_cb(self, point_cloud):
         if point_cloud:
             now = rospy.Time.now()
-            can_trans = self.tf_buf.can_transform("robot1/top_shield_link",
+            can_trans = self.tf_buf.can_transform("robot1/front_laser",
                     "robot1/kinect_depth_frame", now)
- #           rosprint(can_trans)
             if can_trans:
                 top_shield_trans=self.tf_buf.lookup_transform("robot1/front_laser",
                     "robot1/kinect_depth_frame",now)
                 top_shield_pt_msg = tf2_sensor_msgs.do_transform_cloud(point_cloud,
                     top_shield_trans)
                 self.depth_pub.publish(top_shield_pt_msg)
-#                rosprint("Depth transformed!")
 
     def laser_msg_transform(laser_msg=None,trans=None):
         if laser_msg and trans:
@@ -65,8 +63,6 @@ if __name__ == '__main__':
 
     tf_node = TFNode()
     loop_rate = rospy.Rate(10)
-
-    rosprint("Starting loop")
 
     while not rospy.is_shutdown():
         # 10 Hz loop

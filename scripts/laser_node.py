@@ -6,6 +6,7 @@ import rospy
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 
+import tools
 from tools import rosprint
 
 from team3_msgs.msg import ScannedObjs,ScannedObj
@@ -15,9 +16,11 @@ class LaserNode:
 
         #inialising the node and publishers/subsribers
         rospy.init_node("laser_node",anonymous=True)
-        rospy.loginfo("initialised laser node!")
-        self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,self.show)
-        self.scanned_obj_pub = rospy.Publisher("scanned_objs", ScannedObjs, queue_size=10)
+        rospy.loginfo("Initialised laser node!")
+        self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,
+                self.laser_scan_cb)
+        self.scanned_obj_pub = rospy.Publisher("scanned_objs", ScannedObjs,
+                queue_size=1000)
         #parametrs
         self.data = []
         self.average_data = []
@@ -25,14 +28,13 @@ class LaserNode:
         #keeps node from exiting
         rospy.spin()
 
-    def show(self, laser_msg=None):
-        pass
+    def laser_scan_cb(self, laser_msg=None):
+        if self.save(self.checkReliability(laser_msg)):
+             self.average_data = self.processData(self.data)
+             self.data = [] #cleans data in memory
+        self.obstacle_position()
 
     def slice(self,p=None):
-        """
-        TODO: feat_tools, priority 3
-            Move slice and getDataSize to a new module called tools.py.
-        """
         if p is not None:
             if self.getDataSize(self.average_data)<p:
                 raise ValueError("p is bigger than raw_laser_data size!\n")
@@ -68,7 +70,9 @@ class LaserNode:
 
     def average(self, laser_ranges_lists):
         """
-        Returns list of average values of passed list of lists. If index in one of the passed lists is NaN, same index in returned list in NaN.
+        Returns list of average values of passed list of lists.
+        If index in one of the passed lists is NaN, same index in returned
+        list in NaN.
         """
         return np.mean(np.array(laser_ranges_lists), axis=0)
 
@@ -100,43 +104,29 @@ class LaserNode:
 
     def processData(self, laser_ranges_lists):
         """
-        Returns processed list of data. Averages passed lists, interpolates missing values.
+        Returns processed list of data. Averages passed lists, interpolates
+        missing values.
         """
         return self.interpolateMissing(self.average(laser_ranges_lists))
 
-    def getDataSize(self, laser_data):
-        """
-        TODO: see slice
-        """
-        if laser_data is not None:
-            sum =0
-            for data in laser_data:
-                sum = sum+1
-            return sum
-        else:
-            raise ValueError("Couldn't compute laser data size!\n")
-
-    def obstacle_position(self,threshhold=0):
-        """
-        TODO: feat_enum_pos, priority 5
-            Implement an enum to return where the object is, instead of the
-            numbers. Change this also in players avoid_obstacle.
-        """
+    def obstacle_position(self,threshhold=5):
         if self.average_data == []:
             return []
         elif threshhold > 0:
-            middle = int(self.getDataSize(self.average_data)/2)
+            middle = int(len(self.average_data)/2)
             posphi = 0
-            detected_objs = []
+            scan_msgs = ScannedObjs()
             for data in self.average_data:
                 try:
                     if data < threshhold:
-                        detected_obj = (data, middle - posphi)
-                        detected_objs.append(detected_obj)
+                        scan_msg = ScannedObj()
+                        scan_msg.angle = middle - posphi
+                        scan_msg.dist = data
+                        scan_msgs.scannedObjList.append(scan_msg)
                 except:
                     pass
                 posphi += 1
-            return detected_objs
+            self.scanned_obj_pub.publish(scan_msgs)
 
         else:
             raise ValueError("The threshhold can't be zero!\n");
