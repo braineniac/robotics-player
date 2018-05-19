@@ -19,7 +19,7 @@ class CameraNode:
         #inialising the node and publishers/subsribers
         rospy.init_node("camera_node",anonymous=True)
         rospy.loginfo("Camera node initialised.")
-        self.img_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.show)
+        self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.rgb_cb)
         self.depth_sub = rospy.Subscriber("camera_depth", PointCloud2 ,self.pt_cb)
         #parametrs
         self.bridge = CvBridge()
@@ -37,14 +37,12 @@ class CameraNode:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
 
     def pt_cb(self, pt_msg):
+        """
+        TODO: replace range detection, base it on pointclouds.
+        """
         pass
 
-    def show(self,img_msg=None):
-        """
-        TODO: feat_cameracallback, priority 4
-            Move the time sync functions from the playnode here. The camera
-            should'nt show up automatically.
-        """
+    def rgb_cb(self,img_msg=None):
         self.objects = []
         try:
             image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")

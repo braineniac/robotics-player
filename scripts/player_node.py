@@ -42,6 +42,9 @@ class PlayerNode:
         self.__set_velocities(0,0)
 
     def avoid_obstacle(self,distance=None):
+        """
+        TODO: Needs a bit of smaching up!
+        """
         if distance > 0:
             detected_obj = self.laser.obstacle_position(distance)
             phi_view = 30

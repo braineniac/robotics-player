@@ -13,17 +13,23 @@ class TFNode:
         rospy.init_node("tf_node")
         rosprint("Initialised transform node!")
 
-#        self.laser_sub =  rospy.Subscriber("front_laser/scan",LaserScan,self.laser_sub_cb)
-        self.depth_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.depth_sub_cb)
+#        self.laser_sub =  rospy.Subscriber("front_laser/scan",LaserScan,
+#                               self.laser_sub_cb)
+        self.depth_sub = rospy.Subscriber("kinect/depth/points", PointCloud2,
+                                self.depth_sub_cb)
 
 #        self.laser_pub = rospy.Publisher("laser_top_shield", LaserScan,queue_size)
-        self.depth_pub = rospy.Publisher("camera_depth", PointCloud2, queue_size=queue_size)
+        self.depth_pub = rospy.Publisher("camera_depth", PointCloud2,
+                queue_size=queue_size)
 
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
         rospy.spin()
 
     def laser_sub_cb(self, laser_msg):
+        """
+        This is currently never called. Transformation is missing.
+        """
         now = rospy.Time.now()
         top_shield_trans = self.tf_buf.lookup_transform("robot1/front_laser",
                 "robot1/top_shield_link", now)
@@ -31,6 +37,10 @@ class TFNode:
         self.laser_pub.publish(top_shield_laser_msg)
 
     def depth_sub_cb(self, point_cloud):
+        """
+        Currently transforming the depth pointcloud into the front laser frame,
+        because we can't convert the LaserScan into an another frame
+        """
         if point_cloud:
             now = rospy.Time.now()
             can_trans = self.tf_buf.can_transform("robot1/front_laser",
@@ -43,6 +53,9 @@ class TFNode:
                 self.depth_pub.publish(top_shield_pt_msg)
 
     def laser_msg_transform(laser_msg=None,trans=None):
+        """
+        Conversion of the LaserScan into another frame. WIP
+        """
         if laser_msg and trans:
             laser_msg_trans = LaserScan()
             laser_ms_trans.header = laser_msg.header

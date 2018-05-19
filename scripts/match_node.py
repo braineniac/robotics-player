@@ -22,11 +22,18 @@ class MatchNode:
         rospy.spin()
 
     def camera_save(self, camera_msg):
+        """
+        Just saves the camera msg, so the freshest one is used during the laser
+        callback(the camera is 3 times faster than the laser).
+        """
         if camera_msg:
             self.current_camera_msg = camera_msg
 
 
     def match(self,scanned_msgs):
+        """
+        TODO: make this a lot better after the fixing the laser and camera
+        """
         for camera_msg in self.current_camera_msg.kinectObjList:
             x1 = camera_msg.lower
             x2= camera_msg.upper
