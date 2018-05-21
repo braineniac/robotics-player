@@ -12,6 +12,8 @@ from sensor_msgs.msg import Image,PointCloud2
 import tf2_ros
 import tf2_sensor_msgs
 from tools import rosprint
+import pcl
+import sensor_msgs.point_cloud2 as pc2
 
 class CameraNode:
 
@@ -20,7 +22,7 @@ class CameraNode:
         rospy.init_node("camera_node",anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.rgb_cb)
-        self.depth_sub = rospy.Subscriber("camera_depth", PointCloud2 ,self.pt_cb)
+        self.depth_sub = rospy.Subscriber("kinect/depth_registered/points", PointCloud2 ,self.pt_cb)
         #parametrs
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -40,7 +42,17 @@ class CameraNode:
         """
         TODO: replace range detection, base it on pointclouds.
         """
+	ptc = list(pc2.read_points(pt_msg, skip_nans=True, field_names=("x","y","z")))
+	rospy.loginfo(ptc)
+#	self.pointclouddata(ptc)
         pass
+
+    def pointclouddata(self,pointcloud):
+	rospy.loginfo("pointcloud type: {}".format(type(pointcloud)))
+	rospy.loginfo(pointcloud)
+	for i in pointcloud:
+	    rospy.loginfo(("x","y","z"))
+	pass
 
     def rgb_cb(self,img_msg=None):
         self.objects = []
@@ -62,6 +74,10 @@ class CameraNode:
 #        rospy.loginfo("Amount of yellow blobs:")
         self.detect_contours(self.color_data_Y, "Y")
         self.pub.publish(self.objects)
+
+	
+
+
 
     def filter(self, image=None):
 	self.image_blurred = cv2.medianBlur(image, 7)
