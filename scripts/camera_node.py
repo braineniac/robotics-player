@@ -53,7 +53,7 @@ class CameraNode:
 
 	header = Header()
 	header.stamp = rospy.Time.now()
-	header.frame_id = 'kinect_depth_optical_frame'
+	header.frame_id = 'robot1/kinect_depth_optical_frame'
 	msg = pc2.create_cloud(header,fields,testpoints)
 	msg.height = 20
 	msg.width = 20
