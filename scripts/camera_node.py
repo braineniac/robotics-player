@@ -7,8 +7,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from team3_msgs.msg import KinectObj, KinectObjs
 
-from std_msgs.msg import String
-from sensor_msgs.msg import Image,PointCloud2
+from std_msgs.msg import String, Header
+from sensor_msgs.msg import Image,PointCloud2,PointField
 import tf2_ros
 import tf2_sensor_msgs
 from tools import rosprint
@@ -22,7 +22,7 @@ class CameraNode:
         rospy.init_node("camera_node",anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image,self.rgb_cb)
-        self.depth_sub = rospy.Subscriber("kinect/depth_registered/points", PointCloud2 ,self.pt_cb)
+        self.depth_sub = rospy.Subscriber("kinect/depth/points", PointCloud2 ,self.pt_cb)
         #parametrs
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -31,6 +31,7 @@ class CameraNode:
         self.histograms_window = "histograms"
         self.objects=KinectObjs().kinectObjList
         self.pub = rospy.Publisher("camera_objs", KinectObjs, queue_size=1000)
+	self.pubtest = rospy.Publisher("detected_points", PointCloud2, queue_size=1000) # detected points test
 
         #keeps node from exiting
         rospy.spin()
@@ -42,16 +43,33 @@ class CameraNode:
         """
         TODO: replace range detection, base it on pointclouds.
         """
-	ptc = list(pc2.read_points(pt_msg, skip_nans=True, field_names=("x","y","z")))
-	rospy.loginfo(ptc)
+	uvstest=[]
+	for i in range(310,330):
+	    for j in range(230,250):
+		uvstest.append([i,j])
+	testpoints=list(pc2.read_points(pt_msg, skip_nans=True, field_names=("x","y","z"), uvs=uvstest))
+	fields = pt_msg.fields[0:3]
+#	rospy.loginfo(fields)
+
+	header = Header()
+	header.stamp = rospy.Time.now()
+	header.frame_id = 'kinect_depth_optical_frame'
+	msg = pc2.create_cloud(header,fields,testpoints)
+	msg.height = 20
+	msg.width = 20
+	self.pubtest.publish(msg)
+	
+
+#	ptc2 = pcl.load(ptc)
+#	rospy.loginfo(type(ptc2))
 #	self.pointclouddata(ptc)
         pass
 
     def pointclouddata(self,pointcloud):
 	rospy.loginfo("pointcloud type: {}".format(type(pointcloud)))
 	rospy.loginfo(pointcloud)
-	for i in pointcloud:
-	    rospy.loginfo(("x","y","z"))
+#	for i in pointcloud:
+#	    rospy.loginfo(("x","y","z"))
 	pass
 
     def rgb_cb(self,img_msg=None):
