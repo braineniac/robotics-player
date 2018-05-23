@@ -115,22 +115,57 @@ class LaserNode:
         elif threshhold > 0:
             middle = int(len(self.average_data)/2)
             posphi = 0
-            scan_msgs = ScannedObjs()
+            scanned_angles = ()
+            scanned_dists = ()
             for data in self.average_data:
                 try:
                     if data < threshhold:
-                        scan_msg = ScannedObj()
-                        scan_msg.angle = middle - posphi
-                        scan_msg.dist = data
-                        scan_msgs.scannedObjList.append(scan_msg)
+                        scanned_angles += (self, middle - posphi)
+                        scanned_dists += (self, data)
+                        self.remove_objects(scanned_angles, scanned_dists)
+
                 except:
                     pass
                 posphi += 1
-            self.scanned_obj_pub.publish(scan_msgs)
+
 
         else:
             raise ValueError("The threshhold can't be zero!\n");
             exit(-1)
+
+    def remove_objects(self, scanned_angles, scanned_dists):
+        n=-1
+        scan_msgs = ScannedObjs()
+        dist_threshold = 0.05
+        mergable_object_angle = ()
+        mergable_object_dist = ()
+        merged_objects_angle = ()
+        merged_objects_dist = ()
+        for scanned_angles[n] in scanned_angles:
+            n+=1
+            if not scanned_angles[n]
+            if scanned_angles[n] == (scanned_angles[n+1]-1):
+                while scanned_angles[n] == (scanned_angles[n+1]-1):
+                    n += 1
+                    if abs(scanned_dists[n]-scanned_dists[n+1]) < dist_threshold:
+                        if scanned_angles[n] not in mergable_object_angle:
+                            mergable_object_angle+=(scanned_angles[n])
+                            mergable_object_dist+=(scanned_dists[n])
+                        mergable_object_angle+=(self, scanned_angles[n+1])
+                        mergable_object_dist+=(self, scanned_dists[n+1])
+
+            mid_merged_object_angle = int(len(mergable_object_angle) / 2)
+            mid_merged_object_dist = int(len(mergable_object_dist) / 2)
+            merged_objects_angle += mergable_object_angle[mid_merged_object_angle]
+            merged_objects_dist += mergable_object_dist[mid_merged_object_dist]
+
+        scan_msg = ScannedObj()
+        scan_msg.angle = merged_objects_angle
+        scan_msg.dist = merged_objects_dist
+
+        scan_msgs.scannedObjList.append(scan_msg)
+        self.scanned_obj_pub.publish(scan_msgs)
+
 
 if __name__ == '__main__':
 
