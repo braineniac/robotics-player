@@ -19,6 +19,7 @@ class MoveNode:
         """
         Executes move based on CmdMove message.
         """
+<<<<<<< HEAD
         timeLeft = move_msg.duration
         while timeLeft > 0:
             if move_msg.direction.lower() == "fwd":
@@ -35,6 +36,17 @@ class MoveNode:
             else:
                 rospy.sleep(timeLeft)
                 timeLeft = 0
+=======
+        if move_msg.direction.lower() == "fwd":
+            self.forward(move_msg.speed)
+        elif move_msg.direction.lower() == "cw":
+            self.turnRight(move_msg.speed)
+        elif move_msg.direction.lower() == "ccw":
+            self.turnLeft(move_msg.speed)
+        else:
+            self.stop()
+        rospy.sleep(move_msg.duration)
+>>>>>>> a920e782605f080dd5defe740130c86339a010ed
 
     def forward(self,speed=0):
         if speed > 0:
@@ -66,6 +78,36 @@ class MoveNode:
         else:
             exit(-1)
 
+<<<<<<< HEAD
+=======
+    def avoid_obstacle(self,distance=None):
+        """
+        TODO: Needs a bit of smaching up!
+        """
+        if distance > 0:
+            detected_obj = self.laser.obstacle_position(distance)
+            phi_view = 30
+            for data in detected_obj:
+                range_obj, phi_obj = data
+                if abs(phi_obj) < phi_view:
+                    if phi_obj > 0:
+                        rosprint("Avoiding obstacle, turning right!")
+                        self.turnRight(1)
+                    else:
+                        rosprint("Avoiding obstacle, turning left!")
+                        self.turnLeft(1)
+
+            rosprint("No obstacle ahead! Moving randomly!")
+            if rd.random() < 0.66:
+                self.forward(0.1)
+            elif rd.random() < 0.81:
+                self.turnRight(0.5)
+            else:
+                self.turnLeft(0.5)
+        else:
+            raise ValueError("Obstacle distance can't be negative!\n")
+
+>>>>>>> a920e782605f080dd5defe740130c86339a010ed
 if __name__ == '__main__':
 
     move_node = MoveNode()
