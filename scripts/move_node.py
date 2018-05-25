@@ -3,6 +3,10 @@
 import rospy
 from team3_msgs.msg import *
 
+from geometry_msgs.msg import Twist
+
+from tools import rosprint
+
 class MoveNode:
 
     def __init__(self):
@@ -36,17 +40,6 @@ class MoveNode:
             else:
                 rospy.sleep(timeLeft)
                 timeLeft = 0
-
-        if move_msg.direction.lower() == "fwd":
-            self.forward(move_msg.speed)
-        elif move_msg.direction.lower() == "cw":
-            self.turnRight(move_msg.speed)
-        elif move_msg.direction.lower() == "ccw":
-            self.turnLeft(move_msg.speed)
-        else:
-            self.stop()
-        rospy.sleep(move_msg.duration)
-
 
     def forward(self,speed=0):
         if speed > 0:
