@@ -19,6 +19,7 @@ class MoveNode:
         """
         Executes move based on CmdMove message.
         """
+
         timeLeft = move_msg.duration
         while timeLeft > 0:
             if move_msg.direction.lower() == "fwd":
@@ -45,6 +46,7 @@ class MoveNode:
         else:
             self.stop()
         rospy.sleep(move_msg.duration)
+
 
     def forward(self,speed=0):
         if speed > 0:
