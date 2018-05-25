@@ -22,6 +22,7 @@ class PlayerNode:
         sel.move("fwd",10,5)
 
     def move(self, direction, duration, speed):
+
         """
         Sends CmdMove message to cmd_move topic. Direction: "fwd" = forward, "cw" = clockwise, "ccw" = counterclockwise. Duration in seconds. Speed in m/s.
         """
@@ -32,9 +33,11 @@ class PlayerNode:
         self.move_pub.publish(msg)
 
     def avoid_obstacle(self,distance=None):
+
         """
-        TODO: Needs a bit of smaching up!
+        Sends CmdMove message to cmd_move topic. Direction: "fwd" = forward, "cw" = clockwise, "ccw" = counterclockwise. Duration in seconds. Speed in m/s.
         """
+
         if distance > 0:
             detected_obj = self.laser.obstacle_position(distance)
             phi_view = 30
@@ -57,6 +60,12 @@ class PlayerNode:
                 self.move("ccw",1,0.5)
         else:
             raise ValueError("Obstacle distance can't be negative!\n")
+            
+        msg = CmdMove()
+        msg.direction = direction
+        msg.duration = duration
+        msg.speed = speed
+        self.move_pub.publish(msg)
 
 if __name__ == '__main__':
 

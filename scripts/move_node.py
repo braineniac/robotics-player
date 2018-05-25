@@ -36,6 +36,16 @@ class MoveNode:
                 rospy.sleep(timeLeft)
                 timeLeft = 0
 
+        if move_msg.direction.lower() == "fwd":
+            self.forward(move_msg.speed)
+        elif move_msg.direction.lower() == "cw":
+            self.turnRight(move_msg.speed)
+        elif move_msg.direction.lower() == "ccw":
+            self.turnLeft(move_msg.speed)
+        else:
+            self.stop()
+        rospy.sleep(move_msg.duration)
+
     def forward(self,speed=0):
         if speed > 0:
             self.__set_velocities(speed, 0)
