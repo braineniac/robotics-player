@@ -15,12 +15,10 @@ class TFNode:
 
 #        self.laser_sub =  rospy.Subscriber("front_laser/scan",LaserScan,
 #                               self.laser_sub_cb)
-        self.depth_sub = rospy.Subscriber("kinect/depth/points", PointCloud2,
-                                self.depth_sub_cb)
+        self.depth_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.depth_sub_cb)
 
 #        self.laser_pub = rospy.Publisher("laser_top_shield", LaserScan,queue_size)
-        self.depth_pub = rospy.Publisher("camera_depth", PointCloud2,
-                queue_size=queue_size)
+        self.depth_pub = rospy.Publisher("camera_depth", PointCloud2, queue_size=queue_size)
 
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)

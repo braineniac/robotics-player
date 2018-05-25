@@ -11,12 +11,9 @@ class MatchNode:
 
         rospy.init_node("player_node",anonymous=True)
         rosprint("Initialised match node!")
-        self.scanned_obj_sub = rospy.Subscriber("scanned_objs", ScannedObjs,
-                self.match)
-        self.kinect_objs_sub = rospy.Subscriber("camera_objs", KinectObjs,
-                self.camera_save)
-        self.detected_obj_pub = rospy.Publisher("detected_objs", DetectedObjs,
-                queue_size=1)
+        self.scanned_obj_sub = rospy.Subscriber("scanned_objs", ScannedObjs,self.match)
+        self.kinect_objs_sub = rospy.Subscriber("camera_objs", KinectObjs,self.camera_save)
+        self.detected_obj_pub = rospy.Publisher("detected_objs", DetectedObjs,queue_size=1)
 
         self.current_camera_msg = None
         rospy.spin()
