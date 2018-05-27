@@ -81,7 +81,7 @@ class CameraNode:
             return
         image = cv2.flip(image, -1)
         self.image_data = image
-        cv2.imshow(self.image_window, image)
+        #cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
         self.filter(self.image_data)
         self.detect_color(self.image_blurred)
@@ -144,8 +144,7 @@ class CameraNode:
         img_bin = cv2.threshold(img_gray, 0.0001, 255, cv2.THRESH_BINARY)[1]
 
         contours = cv2.findContours(img_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
-        #self.showcontours(contours)
-        #rospy.loginfo(contours)
+
         # contours is a list of sequences, so number of objects detected iterates through list
         # (because size() or len() crapped out when only a single object was present)
 
@@ -161,10 +160,11 @@ class CameraNode:
             width = max(x_values)-min(x_values)
 #            area = cv2.contourArea(contour)
             self.contour_squares.append((min(x_values),min(y_values),width,height))
+            cv2.rectangle(self.image_data, (min(x_values),min(y_values)), (min(x_values)+width,min(y_values)+height),(0,255,0),2)
         rospy.loginfo(self.contour_squares)
+        cv2.imshow(self.image_window, self.image_data)
 #        rospy.loginfo("Objects:{}".format(self.objects))
 #        rospy.loginfo("Contour size: {}".format(len(contour_x_values)))
-
 
     """
         for border in contour_x_values:
@@ -176,12 +176,6 @@ class CameraNode:
             self.objects.append(msg)
     """
 
-
-    #        i=0
-    #        while contours:
-    #            del contours[0]
-    #            i = i + 1
-    #        rospy.loginfo("{} blobs".format(i))
 
     # ========================================================================
     # unused but potentially useful (read: useless) code
