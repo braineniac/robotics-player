@@ -5,6 +5,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from matplotlib import pyplot as plt
 import numpy as np
+import team3_msgs
 from team3_msgs.msg import KinectObj, KinectObjs
 
 from std_msgs.msg import String, Header
@@ -23,7 +24,7 @@ class CameraNode:
         rospy.init_node("camera_node", anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
-        self.depth_sub = rospy.Subscriber("kinect/depth_registered/points", PointCloud2, self.pt_cb)
+        self.point_sub = rospy.Subscriber("kinect/depth_registered/points", PointCloud2, self.pt_cb)
         # parameters
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -32,6 +33,7 @@ class CameraNode:
         self.histograms_window = "histograms"
         self.objects = KinectObjs().kinectObjList
         self.pub = rospy.Publisher("camera_objs", KinectObjs, queue_size=1000)
+        self.pub2 = rospy.Publisher("camera_obj", KinectObj, queue_size=1000)
         self.pubtest = rospy.Publisher("detected_points", PointCloud2, queue_size=1000)  # detected points test
 
         # keeps node from exiting
@@ -42,7 +44,6 @@ class CameraNode:
 
     def pt_cb(self, pt_msg):
         self.pc_data = pt_msg
-
 
     def rgb_cb(self, img_msg=None):
         try:
@@ -130,48 +131,31 @@ class CameraNode:
             cv2.rectangle(self.image_data, (min(x_values),min(y_values)), (min(x_values)+width,min(y_values)+height),(0,255,0),2)
 
         cv2.imshow(self.image_window, self.image_data)
-#        rospy.loginfo("Objects:{}".format(self.objects))
-#        rospy.loginfo("Contour size: {}".format(len(contour_x_values)))
 
         object_pixels = []
         for square in self.contour_squares:
-            pixels = []
-            for i in range(square[0],square[0]+square[2]):
-                for j in range(square[1],square[1]+square[3]):
-                    if img_bin[j,i] == 255:
-                        pixels.append([i,j])
+            pixels = [square[0]+square[2]//2,square[1]+square[3]//2]
             object_pixels.append(pixels)
-        self.extract_objects(self.contour_squares, color, object_pixels)
-
-    def extract_objects(self, contour_squares = None, color = None, object_pixels = None):
-        object_pointclouds = []
-        colors = {"G":60,"B":120,"Y":30}
-        for object in object_pixels:
-            object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z", "r", "g", "b"), uvs=object))
-
-            fields = self.pc_data.fields[0:3]
-            header = Header()
-            header.stamp = rospy.Time.now()
-            header.frame_id = 'robot1/kinect_depth_optical_frame'
-            msg = pc2.create_cloud(header, fields, object_points)
-            msg.height = 1
-            msg.width = len(object)
-            rospy.loginfo(msg.width)
-            self.pubtest.publish(msg)
+        rospy.loginfo(object_pixels)
+        self.extract_objects(object_pixels, color)
 
 
+    def extract_objects(self, object_pixels=None, color=None):
 
-    """
-        for border in contour_x_values:
-            msg = KinectObj()
-            msg.lower = np.amin(border)
-            msg.upper = np.amax(border)
-            msg.area = area
+        for i in object_pixels:
+            object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z", "r", "g", "b"), uvs=[i]))
+            rospy.loginfo(object_points[0])
+            msg = team3_msgs.msg.KinectObj()
+            msg.x = object_points[0][0]
+            msg.y = object_points[0][1]
+            msg.z = object_points[0][2]
+            msg.delta_x = 0
+            msg.delta_x = 0
+            msg.delta_x = 0
             msg.color = color
-            self.objects.append(msg)
-    """
+            self.pub2.publish(msg)
 
-
+        rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
     # ========================================================================
     # unused but potentially useful (read: useless) code
     # ========================================================================
@@ -198,3 +182,43 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
         # 10 Hz loop
         loop_rate.sleep()
+
+        """
+        #for use in detect_contours
+        object_pixels = []
+        for square in self.contour_squares:
+            pixels = []
+            for i in range(square[0],square[0]+square[2]):
+                for j in range(square[1],square[1]+square[3]):
+                    if img_bin[j,i] == 255:
+                        pixels.append([i,j])
+            object_pixels.append(pixels)
+        self.extract_objects(self.contour_squares, color, object_pixels)
+
+    def extract_objects(self, contour_squares = None, color = None, object_pixels = None):
+        object_pointclouds = []
+        colors = {"G":60,"B":120,"Y":30}
+
+        for object in object_pixels:
+            distances = []
+            rospy.loginfo(np.shape(object))
+            rospy.loginfo(len(object))
+            for i in range(0,len(object)):
+                #distances.append(self.depth_data[object[i,0],object[i,1]])
+                rospy.loginfo(self.depth_data)
+        """
+
+        """
+        for object in object_pixels:
+            object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z", "r", "g", "b"), uvs=object))
+
+            fields = self.pc_data.fields[0:3]
+            header = Header()
+            header.stamp = rospy.Time.now()
+            header.frame_id = 'robot1/kinect_depth_optical_frame'
+            msg = pc2.create_cloud(header, fields, object_points)
+            msg.height = 1
+            msg.width = len(object)
+            rospy.loginfo(msg.width)
+            self.pubtest.publish(msg)
+        """
