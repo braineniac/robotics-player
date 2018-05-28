@@ -23,7 +23,7 @@ class CameraNode:
         rospy.init_node("camera_node", anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
-        self.depth_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.pt_cb)
+        self.depth_sub = rospy.Subscriber("kinect/depth_registered/points", PointCloud2, self.pt_cb)
         # parameters
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -41,59 +41,30 @@ class CameraNode:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
 
     def pt_cb(self, pt_msg):
-        """
-        TODO: replace range detection, base it on pointclouds.
-        """
-        uvstest = []
-        for i in range(310, 330):
-            for j in range(238, 242):
-                uvstest.append([i, j])
-        testpoints = list(pc2.read_points(pt_msg, skip_nans=True, field_names=("x", "y", "z"), uvs=uvstest))
-        fields = pt_msg.fields[0:3]
-        #	rospy.loginfo(fields)
+        self.pc_data = pt_msg
 
-        header = Header()
-        header.stamp = rospy.Time.now()
-        header.frame_id = 'robot1/kinect_depth_optical_frame'
-        msg = pc2.create_cloud(header, fields, testpoints)
-        msg.height = 4
-        msg.width = 20
-        self.pubtest.publish(msg)
-
-        #	ptc2 = pcl.load(ptc)
-        #	rospy.loginfo(type(ptc2))
-        #	self.pointclouddata(ptc)
-        pass
-
-    def pointclouddata(self, pointcloud):
-        rospy.loginfo("pointcloud type: {}".format(type(pointcloud)))
-        rospy.loginfo(pointcloud)
-        #	for i in pointcloud:
-        #	    rospy.loginfo(("x","y","z"))
-        pass
 
     def rgb_cb(self, img_msg=None):
-        self.objects = []
         try:
             image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:
             rospy.logerr(e)
             return
-        image = cv2.flip(image, -1)
+        #image = cv2.flip(image, -1) # only needed for usb camera, not for kinect one
         self.image_data = image
         #cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
-        self.filter(self.image_data)
+        self.blurfilter(self.image_data)
         self.detect_color(self.image_blurred)
         #        rospy.loginfo("Amount of green blobs:")
-        self.detect_contours(self.color_data_G, "G")
+        self.detect_contours_and_pixels(self.color_data_G, "G")
         #        rospy.loginfo("Amount of blue blobs:")
-        self.detect_contours(self.color_data_B, "B")
+        self.detect_contours_and_pixels(self.color_data_B, "B")
         #        rospy.loginfo("Amount of yellow blobs:")
-        self.detect_contours(self.color_data_Y, "Y")
-        self.pub.publish(self.objects)
+        self.detect_contours_and_pixels(self.color_data_Y, "Y")
 
-    def filter(self, image=None):
+
+    def blurfilter(self, image=None):
         self.image_blurred = cv2.medianBlur(image, 7)
 
     def detect_color(self, image=None):
@@ -123,11 +94,6 @@ class CameraNode:
         maskB = cv2.inRange(imgHSV, lowerB, upperB)
         maskY = cv2.inRange(imgHSV, lowerY, upperY)
 
-        nonz = np.nonzero(maskG)
-        self.nonz_iterable = np.transpose(nonz)
-
-        rospy.loginfo(np.shape(maskG))
-
         outputG = cv2.bitwise_and(image, image, mask=maskG)
         outputB = cv2.bitwise_and(image, image, mask=maskB)
         outputY = cv2.bitwise_and(image, image, mask=maskY)
@@ -137,10 +103,10 @@ class CameraNode:
         self.color_data_Y = outputY
 #        cv2.imshow(self.color_window, self.color_data_Y)
 
-    def detect_contours(self, image=None, color=None):
+    def detect_contours_and_pixels(self, color_data=None, color=None):
         # 80 degrees whole view, about half of the pole in 0.68m
         # using FindContours(), which requires binary image
-        img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        img_gray = cv2.cvtColor(color_data, cv2.COLOR_BGR2GRAY)
         img_bin = cv2.threshold(img_gray, 0.0001, 255, cv2.THRESH_BINARY)[1]
 
         contours = cv2.findContours(img_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
@@ -153,6 +119,7 @@ class CameraNode:
         for contour in contours:
             x_values = []
             y_values = []
+            # would be prettier with cv2.BoundingRSect
             for elem in contour:
                 x_values.append(elem[0][0])
                 y_values.append(elem[0][1])
@@ -161,10 +128,38 @@ class CameraNode:
 #            area = cv2.contourArea(contour)
             self.contour_squares.append((min(x_values),min(y_values),width,height))
             cv2.rectangle(self.image_data, (min(x_values),min(y_values)), (min(x_values)+width,min(y_values)+height),(0,255,0),2)
-        rospy.loginfo(self.contour_squares)
+
         cv2.imshow(self.image_window, self.image_data)
 #        rospy.loginfo("Objects:{}".format(self.objects))
 #        rospy.loginfo("Contour size: {}".format(len(contour_x_values)))
+
+        object_pixels = []
+        for square in self.contour_squares:
+            pixels = []
+            for i in range(square[0],square[0]+square[2]):
+                for j in range(square[1],square[1]+square[3]):
+                    if img_bin[j,i] == 255:
+                        pixels.append([i,j])
+            object_pixels.append(pixels)
+        self.extract_objects(self.contour_squares, color, object_pixels)
+
+    def extract_objects(self, contour_squares = None, color = None, object_pixels = None):
+        object_pointclouds = []
+        colors = {"G":60,"B":120,"Y":30}
+        for object in object_pixels:
+            object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z", "r", "g", "b"), uvs=object))
+
+            fields = self.pc_data.fields[0:3]
+            header = Header()
+            header.stamp = rospy.Time.now()
+            header.frame_id = 'robot1/kinect_depth_optical_frame'
+            msg = pc2.create_cloud(header, fields, object_points)
+            msg.height = 1
+            msg.width = len(object)
+            rospy.loginfo(msg.width)
+            self.pubtest.publish(msg)
+
+
 
     """
         for border in contour_x_values:
