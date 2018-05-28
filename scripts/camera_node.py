@@ -56,6 +56,9 @@ class CameraNode:
         #cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
         self.blurfilter(self.image_data)
+
+        self.Objs = []
+
         self.detect_color(self.image_blurred)
         #        rospy.loginfo("Amount of green blobs:")
         self.detect_contours_and_pixels(self.color_data_G, "G")
@@ -64,6 +67,7 @@ class CameraNode:
         #        rospy.loginfo("Amount of yellow blobs:")
         self.detect_contours_and_pixels(self.color_data_Y, "Y")
 
+        self.pub.publish(self.Objs)
 
     def blurfilter(self, image=None):
         self.image_blurred = cv2.medianBlur(image, 7)
@@ -145,15 +149,18 @@ class CameraNode:
         for i in object_pixels:
             object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z", "r", "g", "b"), uvs=[i]))
             rospy.loginfo(object_points[0])
-            msg = team3_msgs.msg.KinectObj()
-            msg.x = object_points[0][0]
-            msg.y = object_points[0][1]
-            msg.z = object_points[0][2]
-            msg.delta_x = 0
-            msg.delta_x = 0
-            msg.delta_x = 0
-            msg.color = color
-            self.pub2.publish(msg)
+            Obj = team3_msgs.msg.KinectObj()
+            Obj.x = object_points[0][0]
+            Obj.y = object_points[0][1]
+            Obj.z = object_points[0][2]
+            Obj.delta_x = 0.2
+            Obj.delta_y = 0.2
+            Obj.delta_z = 0.4
+            Obj.color = color
+            self.pub2.publish(Obj)
+            self.Objs.append(Obj)
+
+
 
         rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
     # ========================================================================
