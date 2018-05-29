@@ -18,6 +18,7 @@
       <node pkg="player" name="tf_node" type="tf_node.py" output="screen"/>
       <node pkg="player" name="laser_node" type="laser_node.py" output="screen"/>
       <node pkg="player" name="move_node" type="move_node.py" output="screen"/>
+      <node pkg="player" name="map_node" type="map_node.py" output="screen"/>
     </group>
    </group>
 </launch>

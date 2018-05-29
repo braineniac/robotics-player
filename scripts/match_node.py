@@ -31,6 +31,7 @@ class MatchNode:
         """
         TODO: make this a lot better after the fixing the laser and camera
         """
+        break
         for camera_msg in self.current_camera_msg.kinectObjList:
             x1 = camera_msg.lower
             x2= camera_msg.upper
