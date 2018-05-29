@@ -37,8 +37,59 @@ class OdomNode:
                         delta_y = np.sin(angle_current) * dist_current - np.cos(angle_last) * dist_last
                         vx = delta_x / dt
                         vy = delta_y / dt
-                        self.publish(phi, delta_x, delta_y, vx, vy)
+                        break
+            break
+        self.publish(phi, delta_x, delta_y, vx, vy)
         self.last_scanned_msg = scanned_msg
+
+    def calc_new_position(self, scanned_msg):
+        #calcutaes delta time
+        laser_time_now = rospy.Time.now()
+        laser_time_last = self.last_time_stamp
+        dt = laser_time_now - laser_time_last
+
+        middle_obj = self.find_middle(last_scanned_msg.scannedObjList)
+        if(middle_obj == None):
+            return
+
+        closest_obj = self.find_closest(middle_obj, scanned_msg.scannedObjList)
+        if(closest_obj == None):
+            return
+
+        delta_phi = middle_obj.angle - closest_obj.angle
+        delta_x = np.cos(closest_obj.angle) * closest_obj.dist - np.cos(middle_obj.angle) * middle_obj.dist
+        delta_y = np.sin(closest_obj.angle) * closest_obj.dist - np.cos(middle_obj.angle) * middle_obj.dist
+        vx = delta_x / dt
+        vy = delta_y / dt
+        self.publish(delta_phi, delta_x, delta_y, vx, vy)
+        self.last_scanned_msg = scanned_msg
+
+    def find_closest(ref_obj, objList):
+        closest_obj = None
+        smallest_dist = np.inf
+        for obj in objList:
+            delta_x = np.cos(obj.angle) * obj.dist - np.cos(ref_obj.angle) * ref_obj.dist
+            delta_y = np.sin(obj.angle) * obj.dist - np.cos(ref_obj.angle) * ref_obj.dist
+            dist = sqrt(delta_x ** 2 + delta_y ** 2)
+            if(dist < smallest_dist):
+                smallest_dist = dist
+                closest_obj = obj
+        return closest_obj
+
+
+    def find_middle(self,objList):
+        """
+        Finds middle object from passed list and returns it.
+        """
+        middle_obj = ScanedObj()
+        middle_obj.angle = np.inf
+        for obj in objList:
+            if abs(obj.angle) < abs(middle_obj.angle):
+                middle_obj = obj
+        if middle_obj.angle == np.inf:
+            return None
+        else:
+            return middle_obj
 
     def publish(phi, delta_x, delta_y, vx,vy):
         odom_msg = Odom()
