@@ -3,10 +3,6 @@
 import rospy
 from team3_msgs.msg import *
 
-from geometry_msgs.msg import Twist
-
-from tools import rosprint
-
 class MoveNode:
 
     def __init__(self):
@@ -32,8 +28,10 @@ class MoveNode:
                 self.turnRight(move_msg.speed)
             elif move_msg.direction.lower() == "ccw":
                 self.turnLeft(move_msg.speed)
-            else:
+            else move_msg.direction.lower() == "stop":
                 self.stop()
+            else:
+                raise ValueError("Invalid direction specifier! (Valid specifiers: fwd, cw, ccw, stop)\n")
             if timeLeft >= 0.25:
                 rospy.sleep(0.25)
                 timeLeft -= 0.25
