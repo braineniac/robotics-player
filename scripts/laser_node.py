@@ -20,7 +20,7 @@ class LaserNode:
         self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,
                 self.laser_scan_cb)
         self.scanned_obj_pub = rospy.Publisher("scanned_objs", ScannedObjs,
-                queue_size=1000)
+                queue_size=1)
         #parametrs
         self.data = []
         self.average_data = []
@@ -115,22 +115,56 @@ class LaserNode:
         elif threshhold > 0:
             middle = int(len(self.average_data)/2)
             posphi = 0
-            scan_msgs = ScannedObjs()
+            scanned_angles = []
+            scanned_dists = []
             for data in self.average_data:
                 try:
                     if data < threshhold:
-                        scan_msg = ScannedObj()
-                        scan_msg.angle = middle - posphi
-                        scan_msg.dist = data
-                        scan_msgs.scannedObjList.append(scan_msg)
+                        scanned_angles.append(middle - posphi)
+                        scanned_dists.append(data)
                 except:
                     pass
                 posphi += 1
-            self.scanned_obj_pub.publish(scan_msgs)
+            self.remove_objects(scanned_angles, scanned_dists)
 
         else:
             raise ValueError("The threshhold can't be zero!\n");
             exit(-1)
+
+    def remove_objects(self, scanned_angles, scanned_dists):
+        dist_threshold = 0.05
+        n_list = []
+        n_list.append([])
+        i = 0
+        merged_scanned_angles = []
+        merged_scanned_dist = []
+        for n in range(0,len(scanned_angles)-1):
+            diff = abs(scanned_dists[n]-scanned_dists[n+1])
+            if diff < dist_threshold:
+                n_list[i].append(n)
+            else:
+                i = i + 1
+                n_list.append([])
+
+        n_list = [x for x in n_list if x != []]
+        rosprint(n_list)
+        for elem in n_list:
+            middle = int(len(elem)/2)
+            merged_scanned_dist.append(scanned_dists[elem[middle]])
+            merged_scanned_angles.append(scanned_angles[elem[middle]])
+        rosprint(len(merged_scanned_dist))
+
+        self.publish_scanned(merged_scanned_dist,merged_scanned_angles)
+
+    def publish_scanned(self, scanned_dists, scanned_angles):
+        scan_msgs = ScannedObjs()
+        for n in range(0,len(scanned_dists)):
+            scan_msg = ScannedObj()
+            scan_msg.angle = scanned_angles[n]
+            scan_msg.dist = scanned_dists[n]
+            scan_msgs.scannedObjList.append(scan_msg)
+        self.scanned_obj_pub.publish(scan_msgs)
+
 
 if __name__ == '__main__':
 
