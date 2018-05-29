@@ -20,7 +20,7 @@ class LaserNode:
         self.laser_sub = rospy.Subscriber("front_laser/scan",LaserScan,
                 self.laser_scan_cb)
         self.scanned_obj_pub = rospy.Publisher("scanned_objs", ScannedObjs,
-                queue_size=1000)
+                queue_size=1)
         #parametrs
         self.data = []
         self.average_data = []
@@ -115,55 +115,54 @@ class LaserNode:
         elif threshhold > 0:
             middle = int(len(self.average_data)/2)
             posphi = 0
-            scanned_angles = ()
-            scanned_dists = ()
+            scanned_angles = []
+            scanned_dists = []
             for data in self.average_data:
                 try:
                     if data < threshhold:
-                        scanned_angles += (self, middle - posphi)
-                        scanned_dists += (self, data)
-                        self.remove_objects(scanned_angles, scanned_dists)
-
+                        scanned_angles.append(middle - posphi)
+                        scanned_dists.append(data)
                 except:
                     pass
                 posphi += 1
-
+            self.remove_objects(scanned_angles, scanned_dists)
 
         else:
             raise ValueError("The threshhold can't be zero!\n");
             exit(-1)
 
     def remove_objects(self, scanned_angles, scanned_dists):
-        n=-1
-        scan_msgs = ScannedObjs()
         dist_threshold = 0.05
-        mergable_object_angle = ()
-        mergable_object_dist = ()
-        merged_objects_angle = ()
-        merged_objects_dist = ()
-        for scanned_angles[n] in scanned_angles:
-            n+=1
-            if not scanned_angles[n]
-            if scanned_angles[n] == (scanned_angles[n+1]-1):
-                while scanned_angles[n] == (scanned_angles[n+1]-1):
-                    n += 1
-                    if abs(scanned_dists[n]-scanned_dists[n+1]) < dist_threshold:
-                        if scanned_angles[n] not in mergable_object_angle:
-                            mergable_object_angle+=(scanned_angles[n])
-                            mergable_object_dist+=(scanned_dists[n])
-                        mergable_object_angle+=(self, scanned_angles[n+1])
-                        mergable_object_dist+=(self, scanned_dists[n+1])
+        n_list = []
+        n_list.append([])
+        i = 0
+        merged_scanned_angles = []
+        merged_scanned_dist = []
+        for n in range(0,len(scanned_angles)-1):
+            diff = abs(scanned_dists[n]-scanned_dists[n+1])
+            if diff < dist_threshold:
+                n_list[i].append(n)
+            else:
+                i = i + 1
+                n_list.append([])
 
-            mid_merged_object_angle = int(len(mergable_object_angle) / 2)
-            mid_merged_object_dist = int(len(mergable_object_dist) / 2)
-            merged_objects_angle += mergable_object_angle[mid_merged_object_angle]
-            merged_objects_dist += mergable_object_dist[mid_merged_object_dist]
+        n_list = [x for x in n_list if x != []]
+        rosprint(n_list)
+        for elem in n_list:
+            middle = int(len(elem)/2)
+            merged_scanned_dist.append(scanned_dists[elem[middle]])
+            merged_scanned_angles.append(scanned_angles[elem[middle]])
+        rosprint(len(merged_scanned_dist))
 
-        scan_msg = ScannedObj()
-        scan_msg.angle = merged_objects_angle
-        scan_msg.dist = merged_objects_dist
+        self.publish_scanned(merged_scanned_dist,merged_scanned_angles)
 
-        scan_msgs.scannedObjList.append(scan_msg)
+    def publish_scanned(self, scanned_dists, scanned_angles):
+        scan_msgs = ScannedObjs()
+        for n in range(0,len(scanned_dists)):
+            scan_msg = ScannedObj()
+            scan_msg.angle = scanned_angles[n]
+            scan_msg.dist = scanned_dists[n]
+            scan_msgs.scannedObjList.append(scan_msg)
         self.scanned_obj_pub.publish(scan_msgs)
 
 
