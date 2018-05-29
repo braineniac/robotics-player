@@ -18,7 +18,7 @@ class PlayerNode:
         self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1000)
         self.odom_sub = rospy.Subscriber("odom_node", Odom, self.odom_cb)
         self.map_init = False
-        self.odom
+        self.odom = None
         self.mapped_objs = []
         #keeps node from exiting
         rospy.spin()

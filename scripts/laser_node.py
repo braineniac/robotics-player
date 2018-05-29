@@ -147,12 +147,12 @@ class LaserNode:
                 n_list.append([])
 
         n_list = [x for x in n_list if x != []]
-        rosprint(n_list)
+ #       rosprint(n_list)
         for elem in n_list:
             middle = int(len(elem)/2)
             merged_scanned_dist.append(scanned_dists[elem[middle]])
             merged_scanned_angles.append(scanned_angles[elem[middle]])
-        rosprint(len(merged_scanned_dist))
+#        rosprint(len(merged_scanned_dist))
 
         self.publish_scanned(merged_scanned_dist,merged_scanned_angles)
 

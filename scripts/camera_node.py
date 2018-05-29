@@ -66,8 +66,8 @@ class CameraNode:
         pass
 
     def pointclouddata(self, pointcloud):
-        rospy.loginfo("pointcloud type: {}".format(type(pointcloud)))
-        rospy.loginfo(pointcloud)
+#        rospy.loginfo("pointcloud type: {}".format(type(pointcloud)))
+ #       rospy.loginfo(pointcloud)
         #	for i in pointcloud:
         #	    rospy.loginfo(("x","y","z"))
         pass
@@ -126,7 +126,7 @@ class CameraNode:
         nonz = np.nonzero(maskG)
         self.nonz_iterable = np.transpose(nonz)
 
-        rospy.loginfo(np.shape(maskG))
+  #      rospy.loginfo(np.shape(maskG))
 
         outputG = cv2.bitwise_and(image, image, mask=maskG)
         outputB = cv2.bitwise_and(image, image, mask=maskB)
@@ -161,7 +161,7 @@ class CameraNode:
 #            area = cv2.contourArea(contour)
             self.contour_squares.append((min(x_values),min(y_values),width,height))
             cv2.rectangle(self.image_data, (min(x_values),min(y_values)), (min(x_values)+width,min(y_values)+height),(0,255,0),2)
-        rospy.loginfo(self.contour_squares)
+   #     rospy.loginfo(self.contour_squares)
         cv2.imshow(self.image_window, self.image_data)
 #        rospy.loginfo("Objects:{}".format(self.objects))
 #        rospy.loginfo("Contour size: {}".format(len(contour_x_values)))

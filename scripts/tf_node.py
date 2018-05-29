@@ -3,9 +3,9 @@
 import rospy
 from sensor_msgs.msg import LaserScan, Image, PointCloud2
 import tf2_ros
-from tf2_sensor_msgs import tf2_sensor_msgs
+#import tf2_sensor_msgs.tf2_sensor_msgs as tf2_sensor_msg
+from sensor_msgs.point_cloud2 import read_points, create_cloud
 import PyKDL
-
 from tools import rosprint
 
 class TFNode:
@@ -34,6 +34,21 @@ class TFNode:
         top_shield_laser_msg = self.laser_msg_trans(laser_msg,top_shield_trans)
         self.laser_pub.publish(top_shield_laser_msg)
 
+    def transform_to_kdl(self,t):
+            return PyKDL.Frame(PyKDL.Rotation.Quaternion(t.transform.rotation.x,
+                t.transform.rotation.y,t.transform.rotation.z, t.transform.rotation.w),
+                PyKDL.Vector(t.transform.translation.x, t.transform.translation.y,
+                    t.transform.translation.z))
+
+    def do_transform_cloud(self,cloud, transform):
+            t_kdl = self.transform_to_kdl(transform)
+            points_out = []
+            for p_in in read_points(cloud):
+                p_out = t_kdl * PyKDL.Vector(p_in[0], p_in[1], p_in[2])
+                points_out.append((p_out[0], p_out[1], p_out[2]) + p_in[3:])
+                res = create_cloud(transform.header, cloud.fields, points_out)
+            return res
+
     def depth_sub_cb(self, point_cloud):
         """
         Currently transforming the depth pointcloud into the front laser frame,
@@ -46,7 +61,7 @@ class TFNode:
             if can_trans:
                 top_shield_trans=self.tf_buf.lookup_transform("robot1/front_laser",
                     "robot1/kinect_depth_frame",now)
-                top_shield_pt_msg = tf2_sensor_msgs.do_transform_cloud(point_cloud,
+                top_shield_pt_msg = self.do_transform_cloud(point_cloud,
                     top_shield_trans)
                 self.depth_pub.publish(top_shield_pt_msg)
 
