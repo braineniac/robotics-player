@@ -35,7 +35,6 @@ class TFNode:
         self.laser_pub.publish(top_shield_laser_msg)
 
     def transform_to_kdl(self,t):
-        rosprint("KDL")
         return PyKDL.Frame(PyKDL.Rotation.Quaternion(t.transform.rotation.x,
                 t.transform.rotation.y,t.transform.rotation.z, t.transform.rotation.w),
                 PyKDL.Vector(t.transform.translation.x, t.transform.translation.y,
@@ -44,7 +43,6 @@ class TFNode:
     def do_transform_cloud(self,cloud, transform):
         t_kdl = self.transform_to_kdl(transform)
         points_out = []
-        rosprint("trans")
         for p_in in read_points(cloud):
             p_out = t_kdl * PyKDL.Vector(p_in[0], p_in[1], p_in[2])
             points_out.append((p_out[0], p_out[1], p_out[2]) + p_in[3:])
@@ -60,7 +58,6 @@ class TFNode:
             now = rospy.Time.now()
             can_trans = self.tf_buf.can_transform("robot1/front_laser",
                     "robot1/kinect_depth_frame", now)
-            rosprint(can_trans)
             if can_trans:
                 top_shield_trans=self.tf_buf.lookup_transform("robot1/front_laser",
                     "robot1/kinect_depth_frame",now)
