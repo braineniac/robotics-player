@@ -30,7 +30,6 @@ class CameraNode:
         self.image_window = "Camera Input"
         self.color_window = "Detected Colors"
         self.image_data = None
-        self.histograms_window = "histograms"
         self.objects = KinectObjs().kinectObjList
         self.pub = rospy.Publisher("camera_objs", KinectObjs, queue_size=1000)
         self.pub2 = rospy.Publisher("camera_obj", KinectObj, queue_size=1000)
@@ -161,9 +160,10 @@ class CameraNode:
             self.pub2.publish(Obj)
             self.Objs.append(Obj)
 
-
-
         rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
+
+
+
     # ========================================================================
     # unused but potentially useful (read: useless) code
     # ========================================================================
