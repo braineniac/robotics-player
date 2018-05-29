@@ -33,7 +33,7 @@ class CameraNode:
         self.objects = KinectObjs().kinectObjList
         self.pub = rospy.Publisher("camera_objs", KinectObjs, queue_size=1000)
         self.pub2 = rospy.Publisher("camera_obj", KinectObj, queue_size=1000)
-        self.pubtest = rospy.Publisher("detected_points", PointCloud2, queue_size=1000)  # detected points test
+        #self.pubtest = rospy.Publisher("detected_points", PointCloud2, queue_size=1000)  # detected points test
 
         # keeps node from exiting
         rospy.spin()
@@ -140,7 +140,6 @@ class CameraNode:
         for square in self.contour_squares:
             pixels = [square[0]+square[2]//2,square[1]+square[3]//2]
             object_pixels.append(pixels)
-        rospy.loginfo(object_pixels)
         self.extract_objects(object_pixels, color)
 
 
@@ -148,7 +147,7 @@ class CameraNode:
 
         for i in object_pixels:
             object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z", "r", "g", "b"), uvs=[i]))
-            rospy.loginfo(object_points[0])
+            # rospy.loginfo(object_points[0])
             Obj = team3_msgs.msg.KinectObj()
             Obj.x = object_points[0][0]
             Obj.y = object_points[0][1]
@@ -160,7 +159,7 @@ class CameraNode:
             self.pub2.publish(Obj)
             self.Objs.append(Obj)
 
-        rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
+        # rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
 
 
 
