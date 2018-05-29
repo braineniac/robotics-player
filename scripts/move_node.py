@@ -28,7 +28,7 @@ class MoveNode:
                 self.turnRight(move_msg.speed)
             elif move_msg.direction.lower() == "ccw":
                 self.turnLeft(move_msg.speed)
-            else move_msg.direction.lower() == "stop":
+            elif move_msg.direction.lower() == "stop":
                 self.stop()
             else:
                 raise ValueError("Invalid direction specifier! (Valid specifiers: fwd, cw, ccw, stop)\n")
