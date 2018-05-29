@@ -24,7 +24,7 @@ class CameraNode:
         rospy.init_node("camera_node", anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
-        self.point_sub = rospy.Subscriber("kinect/depth_registered/points", PointCloud2, self.pt_cb)
+        self.point_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.pt_cb)
         # parameters
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -45,6 +45,8 @@ class CameraNode:
         self.pc_data = pt_msg
 
     def rgb_cb(self, img_msg=None):
+        # this method initializes everything and ends with publishing detected objects
+
         try:
             image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:
@@ -74,10 +76,7 @@ class CameraNode:
     def detect_color(self, image=None):
         # values are HSV, using hue+-10 for defining a color. Also while in HSV the
         # range of hue is 0-360 degrees, openCV uses hue/2 to fit the value into an int.
-        """
-        TODO: polish into method which takes two hue values as input and
-        doesn't contain everything thrice for coding practice.
-        """
+
         lowerG = np.array([50, 0, 0])
         upperG = np.array([70, 255, 255])
 
@@ -111,6 +110,7 @@ class CameraNode:
     def detect_contours_and_pixels(self, color_data=None, color=None):
         # 80 degrees whole view, about half of the pole in 0.68m
         # using FindContours(), which requires binary image
+
         img_gray = cv2.cvtColor(color_data, cv2.COLOR_BGR2GRAY)
         img_bin = cv2.threshold(img_gray, 0.0001, 255, cv2.THRESH_BINARY)[1]
 
@@ -146,7 +146,7 @@ class CameraNode:
     def extract_objects(self, object_pixels=None, color=None):
 
         for i in object_pixels:
-            object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z", "r", "g", "b"), uvs=[i]))
+            object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z"), uvs=[i]))
             # rospy.loginfo(object_points[0])
             Obj = team3_msgs.msg.KinectObj()
             Obj.x = object_points[0][0]
@@ -161,7 +161,14 @@ class CameraNode:
 
         # rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
 
+if __name__ == '__main__':
 
+    camera_node = CameraNode()
+
+    loop_rate = rospy.Rate(10)
+    while not rospy.is_shutdown():
+        # 10 Hz loop
+        loop_rate.sleep()
 
     # ========================================================================
     # unused but potentially useful (read: useless) code
@@ -180,15 +187,6 @@ class CameraNode:
 	    rospy.loginfo("number of pixels detected: {}".format(pxlamount))
 	    """
 
-
-if __name__ == '__main__':
-
-    camera_node = CameraNode()
-
-    loop_rate = rospy.Rate(10)
-    while not rospy.is_shutdown():
-        # 10 Hz loop
-        loop_rate.sleep()
 
         """
         #for use in detect_contours
