@@ -99,6 +99,7 @@ class CameraNode:
         maskB = cv2.inRange(imgHSV, lowerB, upperB)
         maskY = cv2.inRange(imgHSV, lowerY, upperY)
 
+
         outputG = cv2.bitwise_and(image, image, mask=maskG)
         outputB = cv2.bitwise_and(image, image, mask=maskB)
         outputY = cv2.bitwise_and(image, image, mask=maskY)
