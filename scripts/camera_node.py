@@ -13,7 +13,6 @@ from sensor_msgs.msg import Image, PointCloud2, PointField
 import tf2_ros
 import tf2_sensor_msgs
 from tools import rosprint
-import pcl
 import sensor_msgs.point_cloud2 as pc2
 
 
