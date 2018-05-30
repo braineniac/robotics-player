@@ -37,18 +37,21 @@ class MapNode:
 		map_msg.info.height = self.height
 		map_msg.data = range(self.width * self.height)
 
-		# initialize grid with 0 (free) or -1 (unknown)
+		map_msg.info.origin.position.x = - self.width // 2 * self.resolution
+                map_msg.info.origin.position.y = - self.height // 2 * self.resolution
+
+                # initialize grid with 0 (free) or -1 (unknown)
 		grid = np.ndarray((self.width, self.height), buffer=np.zeros((self.width, self.height), dtype=np.int),
-							 dtype=np.int)
+                        dtype=np.int)
 
 		grid.fill(int(0))
 
-		t = self.pose.getLatestCommonTime("robot1/base_link", "robot1/odom")
-		location, orientation = self.pose.lookupTransform("robot1/odom", "robot1/base_link", t)
+		t = self.pose.getLatestCommonTime("robot1/kinect_link", "map")
+		location, orientation = self.pose.lookupTransform("map", "robot1/kinect_link", t)
 
 		for i in msg.kinectObjList:
-			object = (i.x, i.y)
-			self.set_obstacle(grid, location, orientation, object)
+			kinect_object = (i.x, i.y)
+			self.set_obstacle(grid, location, orientation, kinect_object)
 
 		for i in range(self.width * self.height):
 			map_msg.data[i] = grid.flat[i]
@@ -62,15 +65,15 @@ class MapNode:
 	# position:			[x y] pose of the robot
 	# orientation:      quaternion, orientation of the robot
 
-		off_x = location[1] // self.resolution + self.width  // 2
-		off_y = location[0] // self.resolution + self.height // 2
+		off_x = location[0] // self.resolution + self.width  // 2
+		off_y = location[1] // self.resolution + self.height // 2
 
 		euler = tf.transformations.euler_from_quaternion(orientation)
 
 		if True:
 
 			rospy.loginfo("FOUND OBSTACLE AT: x:%f y:%f", obstacle[0], obstacle[1])
-
+                        rospy.loginfo("Obstacle on the map: x={}, y={}".format(off_x,off_y))
 			# set probability of occupancy to 100 and neighbour cells to 50
 			grid[int(obstacle[0]), int(obstacle[1])] = int(100)
 			if  grid[int(obstacle[0]+1), int(obstacle[1])]   < int(1):
@@ -81,7 +84,10 @@ class MapNode:
 				grid[int(obstacle[0]-1), int(obstacle[1])]   = int(50)
 			if  grid[int(obstacle[0]),   int(obstacle[1]-1)] < int(1):
 				grid[int(obstacle[0]),   int(obstacle[1]-1)] = int(50)
-			"""
+			
+                        for n in range(-10,10):
+                            grid[int(obstacle[0]+n), int(obstacle[1]+n)] =100
+                        """
 			t = 0.5
 			i = 1
 			free_cell = np.dot(rotMatrix,np.array([0, t*i])) + np.array([off_x,off_y])

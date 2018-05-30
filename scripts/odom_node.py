@@ -73,7 +73,7 @@ class OdomNode:
         Broadcasts position and rotation of the laser.
         """
         br = tf.TransformBroadcaster()
-        br.sendTransform(trans, tf.transformations.quaternion_from_euler(rot_euler[0],rot_euler[1],rot_euler[2]), rospy.Time.now(), laser_name, "world")
+        br.sendTransform(trans, tf.transformations.quaternion_from_euler(rot_euler[0],rot_euler[1],rot_euler[2]), rospy.Time.now(), laser_name, "map")
 
     def find_closest(self, ref_obj, objList):
         """
