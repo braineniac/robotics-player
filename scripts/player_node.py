@@ -16,15 +16,20 @@ class PlayerNode:
         self.scanned_objs_sub = rospy.Subscriber("scanned_objs", ScannedObjs, self.run)
 
         self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1000)
-        self.odom_sub = rospy.Subscriber("odom_node", Odom, self.odom_cb)
+        self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
         self.map_init = False
-        self.odom = None
         self.mapped_objs = []
+
+        self.trans = [0,0,0]
+        self.rot_euler = [0,0,0]
+
         #keeps node from exiting
         rospy.spin()
 
     def odom_cb(self, odom_msg):
-        self.odom = odom_msg
+        self.trans[0] += odom_msg.delta_x
+        self.trans[1] += odom_msg.delta_y
+        self.rot_euler[2] += odom_msg.delt_phi
 
     def run(self, detected_objs_msg=None):
         self.move("ccw",speed=0.3,duration=10)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from team3_msgs.msg import ScannedObjs, ScannedObj, Odom
+from team3_msgs.msg import ScannedObjs, ScannedObj, DeltaPose
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped,Quaternion
 import tf
@@ -15,14 +15,13 @@ class OdomNode:
         rospy.init_node("odom_node")
         rosprint("Initialised odom node!")
 
-        self.scanned_sub = rospy.Subscriber("scanned_objs", ScannedObjs, self.update_laser_pose)
+        self.scanned_sub = rospy.Subscriber("scanned_objs", ScannedObjs, self.calc_deltas)
+        self.pose_pub = rospy.Publisher("pose_deltas", DeltaPose,queue_size=1000)
 
         self.last_time_stamp = rospy.Time.now()
         self.last_scanned_msg = ScannedObjs()
 
-        self.laser_trans = [0,0,0]
-        self.laser_rot_euler = [0,0,0]
-
+        rospy.spin()
     # def scanned_cb(self, scanned_msg):
     #     laser_time_now = rospy.Time.now()
     #     laser_time_last = self.last_time_stamp
@@ -46,10 +45,14 @@ class OdomNode:
     #     self.publish(phi, delta_x, delta_y, vx, vy)
     #     self.last_scanned_msg = scanned_msg
 
-    def update_laser_pose(self, scanned_msg):
+    def calc_deltas(self, scanned_msg):
         """
-        Updates position and rotation of the laser and broadcasts it.
+        Calculates changes of position and rotation of the laser and publishes it.
         """
+        laser_time_now = rospy.Time.now()
+        laser_time_last = self.last_time_stamp
+        delta_time = laser_time_now - laser_time_last
+
         middle_obj = self.find_middle(self.last_scanned_msg.scannedObjList)
         if(middle_obj == None):
             return
@@ -62,18 +65,10 @@ class OdomNode:
         delta_x = np.cos(closest_obj.angle) * closest_obj.dist - np.cos(middle_obj.angle) * middle_obj.dist
         delta_y = np.sin(closest_obj.angle) * closest_obj.dist - np.cos(middle_obj.angle) * middle_obj.dist
 
-        self.laser_trans[0] += delta_x
-        self.laser_trans[1] += delta_y
-        self.laser_rot_euler[2] += delta_phi
+        self.publish(delt_phi, delta_x, delta_y, delta_time)
 
         self.last_scanned_msg = scanned_msg
 
-    def broadcast_laser_pose(self, trans, rot_euler, laser_name):
-        """
-        Broadcasts position and rotation of the laser.
-        """
-        br = tf.TransformBroadcaster()
-        br.sendTransform(trans, tf.transformations.quaternion_from_euler(rot_euler[0],rot_euler[1],rot_euler[2]), rospy.Time.now(), laser_name, "map")
 
     def find_closest(self, ref_obj, objList):
         """
@@ -89,7 +84,6 @@ class OdomNode:
                 smallest_dist = dist
                 closest_obj = obj
         return closest_obj
-
 
     def find_middle(self,objList):
         """
@@ -107,13 +101,12 @@ class OdomNode:
         else:
             return middle_obj
 
-    def publish(self, phi, delta_x, delta_y, vx,vy):
-        odom_msg = Odom()
-        odom_msg.phi = phi
+    def publish(self, delta_phi, delta_x, delta_y, delta_time):
+        odom_msg = DeltaPose()
+        odom_msg.delt_phi = delta_phi
         odom_msg.delta_x = delta_x
         odom_msg.delta_y = delta_y
-        odom_msg.vx = vx
-        odom_msg.vy = vy
+        odom_msg.delta_time = delta_time
         self.odom_pub.publish(odom_msg)
 
 if __name__ == '__main__':
@@ -122,7 +115,5 @@ if __name__ == '__main__':
     loop_rate = rospy.Rate(10)
 
     while not rospy.is_shutdown():
-
-        odom_node.broadcast_laser_pose(odom_node.laser_trans, odom_node.laser_rot_euler, "robot1/odom")
 
         loop_rate.sleep()
