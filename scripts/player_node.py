@@ -27,9 +27,11 @@ class PlayerNode:
         self.odom = odom_msg
 
     def run(self, detected_objs_msg=None):
-        self.move("ccw",speed=0.3,duration=10)
+        self.move("ccw",speed=0.1,duration=10)
       #  if self.map_init is False:
             #self.init_map(detected_objs_msg)
+        #self.move("stop")
+
 
     def check_mapped(self, detectedObjs):
         odom = self.odom
@@ -101,7 +103,7 @@ class PlayerNode:
 
 
 
-    def move(self, direction, duration=0, speed=0):
+    def move(self, direction, duration=0.5, speed=0.1):
         """
         Sends CmdMove message to cmd_move topic. Direction: "fwd" = forward, "cw" = clockwise, "ccw" = counterclockwise, "stop" = stop. Duration in seconds. Speed in m/s.
         """

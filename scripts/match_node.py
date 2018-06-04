@@ -34,8 +34,8 @@ class MatchNode:
         """
 	rospy.loginfo("=============")
 	for ray in scanned_msgs.scannedObjList:
-	    rospy.loginfo(ray.dist)
-	    rospy.loginfo(ray.angle)
+#	    rospy.loginfo(ray.dist)
+#	    rospy.loginfo(ray.angle)
 	    
 if __name__ == '__main__':
 
