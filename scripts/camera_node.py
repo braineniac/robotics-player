@@ -70,7 +70,7 @@ class CameraNode:
         self.pub.publish(self.Objs)
 
     def blurfilter(self, image=None):
-        self.image_blurred = cv2.medianBlur(image, 7)
+        self.image_blurred = cv2.GaussianBlur(image, (7,7), 2)
 
     def detect_color(self, image=None):
         # values are HSV, using hue+-10 for defining a color. Also while in HSV the
@@ -124,19 +124,23 @@ class CameraNode:
             x_values = []
             y_values = []
             # would be prettier with cv2.BoundingRSect
-            for elem in contour:
-                x_values.append(elem[0][0])
-                y_values.append(elem[0][1])
-            height = max(y_values)-min(y_values)
-            width = max(x_values)-min(x_values)
-#            area = cv2.contourArea(contour)
-            self.contour_squares.append((min(x_values),min(y_values),width,height))
-            cv2.rectangle(self.image_data, (min(x_values),min(y_values)), (min(x_values)+width,min(y_values)+height),(0,255,0),2)
+            #rospy.loginfo(cv2.contourArea(contour))
+            if cv2.contourArea(contour) >= 400:
+                for elem in contour:
+                    x_values.append(elem[0][0])
+                    y_values.append(elem[0][1])
+                height = max(y_values)-min(y_values)
+                width = max(x_values)-min(x_values)
+#                area = cv2.contourArea(contour)
+                self.contour_squares.append((min(x_values),min(y_values),width,height))
+                cv2.rectangle(self.image_data, (min(x_values),min(y_values)), (min(x_values)+width,min(y_values)+height),(0,255,0),2)
+
 
         cv2.imshow(self.image_window, self.image_data)
 
         object_pixels = []
         for square in self.contour_squares:
+
             pixels = [square[0]+square[2]//2,square[1]+square[3]//2]
             object_pixels.append(pixels)
         self.extract_objects(object_pixels, color)
