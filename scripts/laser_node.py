@@ -163,6 +163,7 @@ class LaserNode:
             scan_msg.angle = scanned_angles[n]
             scan_msg.dist = scanned_dists[n]
             scan_msgs.scannedObjList.append(scan_msg)
+#        rosprint(scan_msgs)
         self.scanned_obj_pub.publish(scan_msgs)
 
 

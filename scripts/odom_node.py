@@ -19,9 +19,11 @@ class OdomNode:
 
         self.last_time_stamp = rospy.Time.now()
         self.last_kinect_msg = None
+        self.last_v = None
 
         self.laser_trans = [0,0,0]
         self.laser_rot_euler = [0,0,0]
+        self.phi = 0
 
     def scanned_cb(self, scanned_msg):
         if self.last_scanned_msg is None:
@@ -61,17 +63,11 @@ class OdomNode:
         if self.last_kinect_msg is None:
             self.last_kinect_msg = kinect_msg
             return
-        time_now_secs = kinect_msg.header.stamp.secs
-        time_now_nsecs = kinect_msg.header.stamp.nsecs
-        time_last_nsecs = self.last_kinect_msg.header.stamp.nsecs
-        time_last_secs = self.last_kinect_msg.header.stamp.nsecs
-        time_diff_secs = time_now_secs - time_last_secs
-        time_diff_nsecs =  time_now_nsecs - time_last_nsecs
-        if time_diff_secs == 0 and time_diff_nsecs < 200000000:
-            rosprint("Odom skipped!")
-            rosprint("Time diff: secs:{},nsecs:{}".format(time_diff_secs,time_diff_nsecs))
+        time_now = kinect_msg.header.stamp.secs + kinect_msg.header.stamp.nsecs/1000000000.0
+        time_last = self.last_kinect_msg.header.stamp.secs + self.last_kinect_msg.header.stamp.nsecs/1000000000.0
+        dt = time_now - time_last
+        if dt < 0.2:
             return
-        rosprint("Running update!")
         middle_obj = self.find_middle(self.last_kinect_msg.kinectObjList)
         if(middle_obj == None):
             return
@@ -94,8 +90,6 @@ class OdomNode:
         #rosprint("x1:{},x2:{},y1:{},y2:{}".format(x1n,x2n,y1n,y2n))
         phi = np.arccos(x1n*x2n+y1n*y2n)
         phi_d = np.rad2deg(phi)
-        if phi_d > 20:
-            return
         #rosprint("d1:{},d2:{}".format(d1,d2))
       #  phi_d = middle_obj.angle - closest_obj.angle
        # phi = np.deg2rad(phi_d)
@@ -104,7 +98,23 @@ class OdomNode:
         delta_y = np.cos(phi) * d1
        # delta_x = np.sin(closest_obj.angle) * closest_obj.dist - np.sin(middle_obj.angle) * middle_obj.dist
        # delta_y = np.cos(closest_obj.angle) * closest_obj.dist - np.cos(middle_obj.angle) * middle_obj.dist
+        v_phi = phi_d / dt
+        v_delta_x = delta_x / dt
+        v_delta_y = delta_y / dt
+        rosprint("Angular velocity:{}".format(v_phi))
+        if self.last_v is not None:
+            _x,_y,v_phi_last = self.last_v
+            rosprint("Estimated phi from last velocity:{}".format(v_phi_last * dt))
+        self.last_v = (v_delta_x,v_delta_y,v_phi)
         rosprint("dist:{},delta_x:{},delta_y:{},phi:{}".format(dist,delta_x,delta_y,phi_d))
+        if phi_d > 20:
+            self.phi = self.phi + v_phi_last * dt
+        elif v_phi > 20:
+            self.phi = self.phi + phi_d
+        else:
+            self.phi = self.phi + phi_d
+        #rosprint("Phi from est. vel:{}".format(self.phi_v))
+        rosprint("Phi:{}".format(self.phi))
         self.laser_trans[0] = delta_x
         self.laser_trans[1] = delta_y
         self.laser_rot_euler[2] = phi
