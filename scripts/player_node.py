@@ -27,7 +27,7 @@ class PlayerNode:
         self.odom = odom_msg
 
     def run(self, detected_objs_msg=None):
-        self.move("ccw",speed=0.1,duration=10)
+        self.move("cw",speed=0.1,duration=10)
       #  if self.map_init is False:
             #self.init_map(detected_objs_msg)
         #self.move("stop")
@@ -96,7 +96,7 @@ class PlayerNode:
 
 
     def init_map(self, detected_objs_msg):
-        self.move("ccw", 1, 0.5)
+        self.move("cw", 1, 0.5)
         self.check_mapped(detected_objs_msg)
         if self.check_for_3_poles():
             self.build_map()

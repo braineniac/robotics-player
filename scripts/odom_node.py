@@ -79,11 +79,12 @@ class OdomNode:
         if(closest_obj == None):
             return
         #delta_phi = middle_obj.angle - closest_obj.angle
-
-        x2 = closest_obj.x
-        y2 = closest_obj.y
-        x1 = middle_obj.x
-        y1 = middle_obj.y
+        if closest_obj.color != "G" or closest_obj.color != "G":
+            return
+        x2 = -closest_obj.x
+        y2 = closest_obj.z
+        x1 = -middle_obj.x
+        y1 = middle_obj.z
         d1 = np.sqrt(x1 * x1 + y1 * y1)
         d2 = np.sqrt(x2 * x2 + y2 * y2)
         x1n = x1 /d1
@@ -93,6 +94,8 @@ class OdomNode:
         #rosprint("x1:{},x2:{},y1:{},y2:{}".format(x1n,x2n,y1n,y2n))
         phi = np.arccos(x1n*x2n+y1n*y2n)
         phi_d = np.rad2deg(phi)
+        if phi_d > 20:
+            return
         #rosprint("d1:{},d2:{}".format(d1,d2))
       #  phi_d = middle_obj.angle - closest_obj.angle
        # phi = np.deg2rad(phi_d)
@@ -184,5 +187,3 @@ if __name__ == '__main__':
    #     rosprint("trans={}\n,rot={}".format(odom_node.laser_trans,odom_node.laser_rot_euler))
 
         odom_node.broadcast_laser_pose(odom_node.laser_trans, odom_node.laser_rot_euler, "robot1/base_link")
-
-        loop_rate.sleep()

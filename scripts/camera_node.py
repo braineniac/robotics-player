@@ -146,7 +146,7 @@ class CameraNode:
 
         for i in object_pixels:
             object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z"), uvs=[i]))
-            # rospy.loginfo(object_points[0])
+            rospy.loginfo(object_points[0])
             Obj = team3_msgs.msg.KinectObj()
             Obj.x = object_points[0][0]
             Obj.y = object_points[0][1]
