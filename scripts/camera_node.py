@@ -70,20 +70,20 @@ class CameraNode:
         self.pub.publish(self.Objs)
 
     def blurfilter(self, image=None):
-        self.image_blurred = cv2.GaussianBlur(image, (7,7), 2)
+        self.image_blurred = cv2.GaussianBlur(image, (7,7), 6)
 
     def detect_color(self, image=None):
         # values are HSV, using hue+-10 for defining a color. Also while in HSV the
         # range of hue is 0-360 degrees, openCV uses hue/2 to fit the value into an int.
 
-        lowerG = np.array([50, 0, 0])
-        upperG = np.array([70, 255, 255])
+        lowerG = np.array([60, 20, 0])
+        upperG = np.array([73, 255, 255])
 
-        lowerB = np.array([110, 0, 0])
-        upperB = np.array([130, 255, 255])
+        lowerB = np.array([86, 20, 0])
+        upperB = np.array([100, 255, 255])
 
-        lowerY = np.array([20, 0, 0])
-        upperY = np.array([40, 255, 255])
+        lowerY = np.array([20, 20, 150])
+        upperY = np.array([34, 255, 255])
         """
         lowerbottomR = np.array([0,0,0])	#HSV ranges for red, should we need it
         upperbottomR = np.array([10,255,255])   #since red hue value is 0 we need 2 ranges
@@ -104,15 +104,15 @@ class CameraNode:
         self.color_data_G = outputG
         self.color_data_B = outputB
         self.color_data_Y = outputY
-#        cv2.imshow(self.color_window, self.color_data_Y)
+
 
     def detect_contours_and_pixels(self, color_data=None, color=None):
         # 80 degrees whole view, about half of the pole in 0.68m
         # using FindContours(), which requires binary image
 
         img_gray = cv2.cvtColor(color_data, cv2.COLOR_BGR2GRAY)
-        img_bin = cv2.threshold(img_gray, 0.0001, 255, cv2.THRESH_BINARY)[1]
-
+        img_bin = cv2.threshold(img_gray, 10, 255, cv2.THRESH_BINARY)[1]
+        cv2.imshow(self.color_window, img_bin)
         contours = cv2.findContours(img_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
 
         # contours is a list of sequences, so number of objects detected iterates through list
@@ -123,26 +123,32 @@ class CameraNode:
         for contour in contours:
             x_values = []
             y_values = []
+            pxl_amount = 0
             # would be prettier with cv2.BoundingRSect
             #rospy.loginfo(cv2.contourArea(contour))
-            if cv2.contourArea(contour) >= 400:
+            if cv2.contourArea(contour) >= 800:     # only use contours containing more than x pixels
                 for elem in contour:
                     x_values.append(elem[0][0])
                     y_values.append(elem[0][1])
                 height = max(y_values)-min(y_values)
                 width = max(x_values)-min(x_values)
 #                area = cv2.contourArea(contour)
-                self.contour_squares.append((min(x_values),min(y_values),width,height))
-                cv2.rectangle(self.image_data, (min(x_values),min(y_values)), (min(x_values)+width,min(y_values)+height),(0,255,0),2)
+                for i in range(min(x_values), min(x_values) + width):
+                    for j in range(min(y_values), min(y_values) + height):
+                        if img_bin[j, i] == 255:
+                            pxl_amount = pxl_amount + 1.0
+                self.contour_squares.append((min(x_values), min(y_values), width, height, pxl_amount/(height*width)))
+                cv2.rectangle(self.image_data, (min(x_values), min(y_values)), (min(x_values)+width, min(y_values)+height), (0,255,0), 2)
+                rospy.loginfo("pixels: {}, density: {}".format(height*width, pxl_amount/(height*width)))
 
 
         cv2.imshow(self.image_window, self.image_data)
 
         object_pixels = []
         for square in self.contour_squares:
-
-            pixels = [square[0]+square[2]//2,square[1]+square[3]//2]
-            object_pixels.append(pixels)
+            if square[4] > 0.5:
+                pixels = [square[0]+square[2]//2,square[1]+square[3]//2]
+                object_pixels.append(pixels)
         self.extract_objects(object_pixels, color)
 
 
