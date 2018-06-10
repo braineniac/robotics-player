@@ -23,7 +23,7 @@ class CameraNode:
         rospy.init_node("camera_node", anonymous=True)
         rospy.loginfo("Camera node initialised.")
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
-        self.point_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.pt_cb)
+        self.point_sub = rospy.Subscriber("camera_depth", PointCloud2, self.pt_cb)
         # parameters
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -42,6 +42,7 @@ class CameraNode:
 
     def pt_cb(self, pt_msg):
         self.pc_data = pt_msg
+        rospy.loginfo(self.pc_data.point_step)
 
     def rgb_cb(self, img_msg=None):
         # this method initializes everything and ends with publishing detected objects
@@ -139,7 +140,7 @@ class CameraNode:
                             pxl_amount = pxl_amount + 1.0
                 self.contour_squares.append((min(x_values), min(y_values), width, height, pxl_amount/(height*width)))
                 cv2.rectangle(self.image_data, (min(x_values), min(y_values)), (min(x_values)+width, min(y_values)+height), (0,255,0), 2)
-                rospy.loginfo("pixels: {}, density: {}".format(height*width, pxl_amount/(height*width)))
+                #rospy.loginfo("pixels: {}, density: {}".format(height*width, pxl_amount/(height*width)))
 
 
         cv2.imshow(self.image_window, self.image_data)
@@ -161,9 +162,9 @@ class CameraNode:
             Obj.x = object_points[0][0]
             Obj.y = object_points[0][1]
             Obj.z = object_points[0][2]
-            Obj.delta_x = 0.2
-            Obj.delta_y = 0.2
-            Obj.delta_z = 0.4
+            Obj.delta_x = 0.0
+            Obj.delta_y = 0.0
+            Obj.delta_z = 0.0
             Obj.color = color
             self.pub2.publish(Obj)
             self.Objs.append(Obj)
