@@ -49,7 +49,7 @@ class TFNode:
         res = create_cloud(transform.header, cloud.fields, points_out)
         res.height = 480
         res.width = 640
-        res.row_step = 20480
+        res.row_step = 12800
         res.point_step = 20
         return res
 
