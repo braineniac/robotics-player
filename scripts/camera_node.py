@@ -24,6 +24,7 @@ class CameraNode:
         rospy.loginfo("Camera node initialised.")
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
         self.point_sub = rospy.Subscriber("camera_depth", PointCloud2, self.pt_cb)
+        # "kinect/depth/points"
         # parameters
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -42,7 +43,6 @@ class CameraNode:
 
     def pt_cb(self, pt_msg):
         self.pc_data = pt_msg
-        rospy.loginfo(self.pc_data.point_step)
 
     def rgb_cb(self, img_msg=None):
         # this method initializes everything and ends with publishing detected objects
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     # ========================================================================
     # unused but potentially useful (read: useless) code
     # ========================================================================
-
+    """
     def show_histogram(self, image=None):
         color = ('b', 'g', 'r')
         for i, col in enumerate(color):
@@ -192,6 +192,7 @@ if __name__ == '__main__':
             plt.xlim([0, 256])
             plt.ion()  # interactive mode, otherwise .show holds until window is closed
             plt.show()
+    """
         """
 	    pxlamount = np.count_nonzero(output)/3
 	    rospy.loginfo("number of pixels detected: {}".format(pxlamount))
