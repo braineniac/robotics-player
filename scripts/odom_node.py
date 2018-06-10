@@ -112,7 +112,8 @@ class OdomNode:
         elif v_phi > 20:
             self.phi = self.phi + phi_d
         else:
-            self.phi = self.phi + phi_d
+            return
+        #    self.phi = self.phi + phi_d
         #rosprint("Phi from est. vel:{}".format(self.phi_v))
         rosprint("Phi:{}".format(self.phi))
         self.laser_trans[0] = delta_x
