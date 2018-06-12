@@ -156,14 +156,23 @@ class LaserNode:
 
         self.publish_scanned(merged_scanned_dist,merged_scanned_angles)
 
+    def transform_radial_cartesian(self, angle, distance):
+        angle_rad = angle * np.pi / 180
+        x = distance * np.cos(angle_rad)
+        y = distance * np.sin(angle_rad)
+        return x, y
+
     def publish_scanned(self, scanned_dists, scanned_angles):
         scan_msgs = ScannedObjs()
         for n in range(0,len(scanned_dists)):
             scan_msg = ScannedObj()
-            scan_msg.angle = scanned_angles[n]
-            scan_msg.dist = scanned_dists[n]
+            x,y = self.transform_radial_cartesian(scanned_angles[n], scanned_dists[n])
+            scan_msg.angle = x
+            scan_msg.dist = y
+            rospy.loginfo("laser sees stuff at a:{}, d:{}".format(scan_msg.angle, scan_msg.dist))
             scan_msgs.scannedObjList.append(scan_msg)
         self.scanned_obj_pub.publish(scan_msgs)
+
 
 
 if __name__ == '__main__':

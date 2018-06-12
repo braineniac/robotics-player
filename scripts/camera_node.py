@@ -44,6 +44,7 @@ class CameraNode:
     def pt_cb(self, pt_msg):
         self.pc_data = pt_msg
 
+
     def rgb_cb(self, img_msg=None):
         # this method initializes everything and ends with publishing detected objects
 
@@ -81,9 +82,9 @@ class CameraNode:
         upperG = np.array([73, 255, 255])
 
         lowerB = np.array([86, 20, 0])
-        upperB = np.array([100, 255, 255])
+        upperB = np.array([121, 255, 255])
 
-        lowerY = np.array([20, 20, 150])
+        lowerY = np.array([20, 20, 0])
         upperY = np.array([34, 255, 255])
         """
         lowerbottomR = np.array([0,0,0])	#HSV ranges for red, should we need it
@@ -168,6 +169,7 @@ class CameraNode:
             Obj.color = color
             self.pub2.publish(Obj)
             self.Objs.append(Obj)
+            rospy.loginfo("kinect sees stuff at x:{}, y:{}".format(Obj.x, Obj.y))
 
         # rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
 
@@ -183,19 +185,19 @@ if __name__ == '__main__':
     # ========================================================================
     # unused but potentially useful (read: useless) code
     # ========================================================================
-    """
-    def show_histogram(self, image=None):
-        color = ('b', 'g', 'r')
-        for i, col in enumerate(color):
-            histr = cv2.calcHist([image], [i], None, [256], [0, 256])
-            plt.plot(histr, color=col)
-            plt.xlim([0, 256])
-            plt.ion()  # interactive mode, otherwise .show holds until window is closed
-            plt.show()
-    """
         """
-	    pxlamount = np.count_nonzero(output)/3
-	    rospy.loginfo("number of pixels detected: {}".format(pxlamount))
+        def show_histogram(self, image=None):
+            color = ('b', 'g', 'r')
+            for i, col in enumerate(color):
+                histr = cv2.calcHist([image], [i], None, [256], [0, 256])
+                plt.plot(histr, color=col)
+                plt.xlim([0, 256])
+                plt.ion()  # interactive mode, otherwise .show holds until window is closed
+                plt.show()
+    
+        
+	        pxlamount = np.count_nonzero(output)/3
+	        rospy.loginfo("number of pixels detected: {}".format(pxlamount))
 	    """
 
 
