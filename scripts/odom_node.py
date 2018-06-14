@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 import rospy
-from team3_msgs.msg import ScannedObjs, ScannedObj, DeltaPose
-from nav_msgs.msg import Odometry
-from geometry_msgs.msg import TransformStamped,Quaternion
 import tf
 import tf2_ros
-from tools import rosprint
 import numpy as np
+
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import TransformStamped,Quaternion
+
+from team3_msgs.msg import ScannedObjs, ScannedObj, DeltaPose
+from team3_msgs.msg import ScannedObjs, ScannedObj, Odom, KinectObj,KinectObjs, DeltaPose
+from tools import rosprint
 
 class OdomNode:
 
@@ -15,59 +18,83 @@ class OdomNode:
         rospy.init_node("odom_node")
         rosprint("Initialised odom node!")
 
-        self.scanned_sub = rospy.Subscriber("scanned_objs", ScannedObjs, self.calc_deltas)
         self.pose_pub = rospy.Publisher("pose_deltas", DeltaPose,queue_size=1000)
+        self.scanned_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.update_pose)
 
         self.last_time_stamp = rospy.Time.now()
-        self.last_scanned_msg = ScannedObjs()
+        self.last_kinect_msg = None
+        self.last_v = None
 
-        rospy.spin()
-    # def scanned_cb(self, scanned_msg):
-    #     laser_time_now = rospy.Time.now()
-    #     laser_time_last = self.last_time_stamp
-    #     dt = laser_time_now - laser_time_last
-    #     current_peaks = []
-    #     last_peaks = []
-    #     current_ranges = []
-    #     for elem_current in scanned_msg.scannedObjList:
-    #         dist_current, angle_current = elem
-    #         for elem_last in self.last_scanned_msg:
-    #             dist_last,angle_last = elem_last
-    #             if angle_last -5>angle_current and angle_last+5 > angle_current:
-    #                 if dist_current - dist_last < 0.1:
-    #                     phi = angle_current - angle_last
-    #                     delta_x = np.cos(angle_current) * dist_current - np.cos(angle_last) * dist_last
-    #                     delta_y = np.sin(angle_current) * dist_current - np.cos(angle_last) * dist_last
-    #                     vx = delta_x / dt
-    #                     vy = delta_y / dt
-    #                     break
-    #         break
-    #     self.publish(phi, delta_x, delta_y, vx, vy)
-    #     self.last_scanned_msg = scanned_msg
+        self.laser_trans = [0,0,0]
+        self.laser_rot_euler = [0,0,0]
+        self.phi = 0
 
-    def calc_deltas(self, scanned_msg):
+    def update_pose(self, kinect_msg):
         """
         Calculates changes of position and rotation of the laser and publishes it.
         """
-        laser_time_now = rospy.Time.now()
-        laser_time_last = self.last_time_stamp
-        delta_time = laser_time_now - laser_time_last
 
-        middle_obj = self.find_middle(self.last_scanned_msg.scannedObjList)
+        if self.last_kinect_msg is None:
+            self.last_kinect_msg = kinect_msg
+            return
+        time_now = kinect_msg.header.stamp.secs + kinect_msg.header.stamp.nsecs/1000000000.0
+        time_last = self.last_kinect_msg.header.stamp.secs + self.last_kinect_msg.header.stamp.nsecs/1000000000.0
+        dt = time_now - time_last
+        if dt < 0.2:
+            return
+        middle_obj = self.find_middle(self.last_kinect_msg.kinectObjList)
         if(middle_obj == None):
             return
-
-        closest_obj = self.find_closest(middle_obj, scanned_msg.scannedObjList)
+        closest_obj = self.find_closest(middle_obj, kinect_msg.kinectObjList)
         if(closest_obj == None):
             return
 
-        delta_phi = middle_obj.angle - closest_obj.angle
-        delta_x = np.cos(closest_obj.angle) * closest_obj.dist - np.cos(middle_obj.angle) * middle_obj.dist
-        delta_y = np.sin(closest_obj.angle) * closest_obj.dist - np.cos(middle_obj.angle) * middle_obj.dist
-
-        self.publish(delt_phi, delta_x, delta_y, delta_time)
-
-        self.last_scanned_msg = scanned_msg
+        #delta_phi = middle_obj.angle - closest_obj.angle
+        if closest_obj.color != "G" or closest_obj.color != "G":
+            return
+        x2 = -closest_obj.x
+        y2 = closest_obj.z
+        x1 = -middle_obj.x
+        y1 = middle_obj.z
+        d1 = np.sqrt(x1 * x1 + y1 * y1)
+        d2 = np.sqrt(x2 * x2 + y2 * y2)
+        x1n = x1 /d1
+        y1n = y1 /d1
+        x2n = x2 /d2
+        y2n = y2 /d2
+        #rosprint("x1:{},x2:{},y1:{},y2:{}".format(x1n,x2n,y1n,y2n))
+        phi = np.arccos(x1n*x2n+y1n*y2n)
+        phi_d = np.rad2deg(phi)
+        #rosprint("d1:{},d2:{}".format(d1,d2))
+      #  phi_d = middle_obj.angle - closest_obj.angle
+       # phi = np.deg2rad(phi_d)
+        dist = np.sqrt(d1 * d1 + d2 * d2 - 2 * d1 * d2 * np.cos(phi))
+        delta_x = np.sin(phi) * d1
+        delta_y = np.cos(phi) * d1
+       # delta_x = np.sin(closest_obj.angle) * closest_obj.dist - np.sin(middle_obj.angle) * middle_obj.dist
+       # delta_y = np.cos(closest_obj.angle) * closest_obj.dist - np.cos(middle_obj.angle) * middle_obj.dist
+        v_phi = phi_d / dt
+        v_delta_x = delta_x / dt
+        v_delta_y = delta_y / dt
+        rosprint("Angular velocity:{}".format(v_phi))
+        if self.last_v is not None:
+            _x,_y,v_phi_last = self.last_v
+            rosprint("Estimated phi from last velocity:{}".format(v_phi_last * dt))
+        self.last_v = (v_delta_x,v_delta_y,v_phi)
+        rosprint("dist:{},delta_x:{},delta_y:{},phi:{}".format(dist,delta_x,delta_y,phi_d))
+        if phi_d > 20:
+            self.phi = self.phi + v_phi_last * dt
+        elif v_phi > 20:
+            self.phi = self.phi + phi_d
+        else:
+            return
+        #    self.phi = self.phi + phi_d
+        #rosprint("Phi from est. vel:{}".format(self.phi_v))
+        rosprint("Phi:{}".format(self.phi))
+        self.laser_trans[0] = delta_x
+        self.laser_trans[1] = delta_y
+        self.laser_rot_euler[2] = phi
+        self.last_kinect_msg = kinect_msg
 
 
     def find_closest(self, ref_obj, objList):
@@ -77,12 +104,29 @@ class OdomNode:
         closest_obj = None
         smallest_dist = np.inf
         for obj in objList:
-            delta_x = np.cos(obj.angle) * obj.dist - np.cos(ref_obj.angle) * ref_obj.dist
-            delta_y = np.sin(obj.angle) * obj.dist - np.cos(ref_obj.angle) * ref_obj.dist
-            dist = sqrt(delta_x ** 2 + delta_y ** 2)
+            #delta_x = np.cos(obj.angle) * obj.dist - np.cos(ref_obj.angle) * ref_obj.dist
+            #delta_y = np.sin(obj.angle) * obj.dist - np.cos(ref_obj.angle) * ref_obj.dist
+            #dist = np.sqrt(delta_x ** 2 + delta_y ** 2)
+            x2 = obj.x
+            y2 = obj.y
+            x1 = ref_obj.x
+            y1 = ref_obj.y
+            d1 = np.sqrt(x1 * x1 + y1 * y1)
+            d2 = np.sqrt(x2 * x2 + y2 * y2)
+            x1n = x1 / d1
+            y1n = y1 /d1
+            x2n = x2 /d2
+            y2n = y2 /d2
+            phi = np.arccos(x1n*x2n+y1n*y2n)
+            phi = np.degrees(phi)
+            dist = np.sqrt(d1 * d1 + d2 * d2 - 2 * d1 * d2 * np.cos(phi))
+            #rosprint("Dist:{}".format(dist))
+            #rosprint("middle_dist={},last_dist={}".format(ref_obj.dist,obj.dist))
             if(dist < smallest_dist):
                 smallest_dist = dist
                 closest_obj = obj
+            #rosprint("Running: ref={},last={}".format(ref_obj.angle,obj.angle))
+        #rosprint("middle={},closest={}".format(ref_obj,closest_obj))
         return closest_obj
 
     def find_middle(self,objList):
@@ -90,13 +134,16 @@ class OdomNode:
         Finds middle object from passed list and returns it.
         """
         middle_obj = ScannedObj()
-        middle_obj.angle = np.inf
+        middle_obj_angle = np.inf
         if(objList == []):
             return None
         for obj in objList:
-            if abs(obj.angle) < abs(middle_obj.angle):
+            angle = np.arctan(obj.y/obj.x)
+        #    rosprint(angle)
+            if abs(angle) < abs(middle_obj_angle):
                 middle_obj = obj
-        if middle_obj.angle == np.inf:
+                middle_obj_angle = angle
+        if middle_obj_angle == np.inf:
             return None
         else:
             return middle_obj
@@ -115,5 +162,6 @@ if __name__ == '__main__':
     loop_rate = rospy.Rate(10)
 
     while not rospy.is_shutdown():
-
+   #     rosprint("trans={}\n,rot={}".format(odom_node.laser_trans,odom_node.laser_rot_euler))
         loop_rate.sleep()
+        odom_node.broadcast_laser_pose(odom_node.laser_trans, odom_node.laser_rot_euler, "robot1/base_link")

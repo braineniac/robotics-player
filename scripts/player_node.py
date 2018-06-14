@@ -13,7 +13,7 @@ class PlayerNode:
         rospy.init_node("player_node",anonymous=True)
         rospy.loginfo("Player node initialised.")
 
-        self.scanned_objs_sub = rospy.Subscriber("scanned_objs", ScannedObjs, self.run)
+        self.scanned_objs_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.run)
 
         self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1000)
         self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
@@ -32,9 +32,10 @@ class PlayerNode:
         self.rot_euler[2] += odom_msg.delt_phi
 
     def run(self, detected_objs_msg=None):
-        self.move("ccw",speed=0.3,duration=10)
-      #  if self.map_init is False:
-            #self.init_map(detected_objs_msg)
+        self.move("cw",speed=0.1,duration=10)
+        if self.map_init is False:
+            self.init_map(detected_objs_msg)
+
 
     def check_mapped(self, detectedObjs):
         odom = self.odom
@@ -99,14 +100,14 @@ class PlayerNode:
 
 
     def init_map(self, detected_objs_msg):
-        self.move("ccw", 1, 0.5)
-        self.check_mapped(detected_objs_msg)
+        self.move("cw", 1, 0.5)
+      #  self.check_mapped(detected_objs_msg)
         if self.check_for_3_poles():
             self.build_map()
 
 
 
-    def move(self, direction, duration=0, speed=0):
+    def move(self, direction, duration=0.5, speed=0.1):
         """
         Sends CmdMove message to cmd_move topic. Direction: "fwd" = forward, "cw" = clockwise, "ccw" = counterclockwise, "stop" = stop. Duration in seconds. Speed in m/s.
         """

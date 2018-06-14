@@ -72,8 +72,8 @@ class MapNode:
 
 		if True:
 
-			rospy.loginfo("FOUND OBSTACLE AT: x:%f y:%f", obstacle[0], obstacle[1])
-                        rospy.loginfo("Obstacle on the map: x={}, y={}".format(off_x,off_y))
+			#rospy.loginfo("FOUND OBSTACLE AT: x:%f y:%f", obstacle[0], obstacle[1])
+                        #rospy.loginfo("Obstacle on the map: x={}, y={}".format(off_x,off_y))
 			# set probability of occupancy to 100 and neighbour cells to 50
 			grid[int(obstacle[0]), int(obstacle[1])] = int(100)
 			if  grid[int(obstacle[0]+1), int(obstacle[1])]   < int(1):
