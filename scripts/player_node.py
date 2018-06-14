@@ -13,7 +13,7 @@ class PlayerNode:
         rospy.init_node("player_node",anonymous=True)
         rospy.loginfo("Player node initialised.")
 
-        self.scanned_objs_sub = rospy.Subscriber("scanned_objs", ScannedObjs, self.run)
+        self.scanned_objs_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.run)
 
         self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1000)
         self.odom_sub = rospy.Subscriber("odom_node", Odom, self.odom_cb)
@@ -28,9 +28,8 @@ class PlayerNode:
 
     def run(self, detected_objs_msg=None):
         self.move("cw",speed=0.1,duration=10)
-      #  if self.map_init is False:
-            #self.init_map(detected_objs_msg)
-        #self.move("stop")
+        if self.map_init is False:
+            self.init_map(detected_objs_msg)
 
 
     def check_mapped(self, detectedObjs):
@@ -97,7 +96,7 @@ class PlayerNode:
 
     def init_map(self, detected_objs_msg):
         self.move("cw", 1, 0.5)
-        self.check_mapped(detected_objs_msg)
+      #  self.check_mapped(detected_objs_msg)
         if self.check_for_3_poles():
             self.build_map()
 
