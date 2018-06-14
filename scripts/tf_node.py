@@ -18,7 +18,7 @@ class TFNode:
         self.depth_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.depth_sub_cb)
 
 #        self.laser_pub = rospy.Publisher("laser_top_shield", LaserScan,queue_size)
-        self.depth_pub = rospy.Publisher("camera_depth", PointCloud2, queue_size=1)
+        self.depth_pub = rospy.Publisher("camera_depth", PointCloud2, queue_size=10)
 
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
@@ -47,6 +47,10 @@ class TFNode:
             p_out = t_kdl * PyKDL.Vector(p_in[0], p_in[1], p_in[2])
             points_out.append((p_out[0], p_out[1], p_out[2]) + p_in[3:])
         res = create_cloud(transform.header, cloud.fields, points_out)
+        res.height = 480
+        res.width = 640
+        res.row_step = 12800
+        res.point_step = 20
         return res
 
     def depth_sub_cb(self, point_cloud):
@@ -57,10 +61,10 @@ class TFNode:
         if point_cloud:
             now = rospy.Time.now()
             can_trans = self.tf_buf.can_transform("robot1/front_laser",
-                    "robot1/kinect_depth_frame", now)
+                    "robot1/kinect_depth_optical_frame", now)
             if can_trans:
                 top_shield_trans=self.tf_buf.lookup_transform("robot1/front_laser",
-                    "robot1/kinect_depth_frame",now)
+                    "robot1/kinect_depth_optical_frame",now)
                 top_shield_pt_msg = self.do_transform_cloud(point_cloud,
                     top_shield_trans)
                 self.depth_pub.publish(top_shield_pt_msg)

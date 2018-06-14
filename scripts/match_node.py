@@ -14,7 +14,6 @@ class MatchNode:
         self.scanned_obj_sub = rospy.Subscriber("scanned_objs", ScannedObjs,self.match)
         self.kinect_objs_sub = rospy.Subscriber("camera_objs", KinectObjs,self.camera_save)
         self.detected_obj_pub = rospy.Publisher("detected_objs", DetectedObjs,queue_size=1)
-	
 
         self.current_camera_msg = None
         rospy.spin()
@@ -36,7 +35,7 @@ class MatchNode:
 	for ray in scanned_msgs.scannedObjList:
 #	    rospy.loginfo(ray.dist)
 #	    rospy.loginfo(ray.angle)
-	    
+
 if __name__ == '__main__':
 
     match_node = MatchNode()
