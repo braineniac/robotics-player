@@ -26,6 +26,7 @@ class CameraNode:
         rosprint("Is our world a simulation? {}".format(self.sim_env))
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
         self.point_sub = rospy.Subscriber("camera_depth", PointCloud2, self.pt_cb)
+        # "kinect/depth/points"
         # parameters
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -47,7 +48,6 @@ class CameraNode:
 
     def pt_cb(self, pt_msg):
         self.pc_data = pt_msg
-#        rospy.loginfo(self.pc_data.point_step)
 
     def rgb_cb(self, img_msg=None):
         # this method initializes everything and ends with publishing detected objects
@@ -177,7 +177,7 @@ class CameraNode:
                 return
             object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z"), uvs=[i]))
             #rospy.loginfo(object_points[0])
-            Obj = team3_msgs.msg.KinectObj()
+            Obj = KinectObj()
             # transforming coordinates
             Obj.x = -object_points[0][2]
             Obj.y = object_points[0][1]
@@ -187,6 +187,7 @@ class CameraNode:
             Obj.delta_z = 0.0
             Obj.color = color
             self.Objs.kinectObjList.append(Obj)
+            #rospy.loginfo("kinect sees stuff at x:{}, y:{}".format(Obj.x, Obj.y))
 
         # rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
 
@@ -202,18 +203,19 @@ if __name__ == '__main__':
     # ========================================================================
     # unused but potentially useful (read: useless) code
     # ========================================================================
-
-    def show_histogram(self, image=None):
-        color = ('b', 'g', 'r')
-        for i, col in enumerate(color):
-            histr = cv2.calcHist([image], [i], None, [256], [0, 256])
-            plt.plot(histr, color=col)
-            plt.xlim([0, 256])
-            plt.ion()  # interactive mode, otherwise .show holds until window is closed
-            plt.show()
         """
-	    pxlamount = np.count_nonzero(output)/3
-	    rospy.loginfo("number of pixels detected: {}".format(pxlamount))
+        def show_histogram(self, image=None):
+            color = ('b', 'g', 'r')
+            for i, col in enumerate(color):
+                histr = cv2.calcHist([image], [i], None, [256], [0, 256])
+                plt.plot(histr, color=col)
+                plt.xlim([0, 256])
+                plt.ion()  # interactive mode, otherwise .show holds until window is closed
+                plt.show()
+    
+        
+	        pxlamount = np.count_nonzero(output)/3
+	        rospy.loginfo("number of pixels detected: {}".format(pxlamount))
 	    """
 
 
