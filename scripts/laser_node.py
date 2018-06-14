@@ -6,10 +6,8 @@ import rospy
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 
-import tools
-from tools import rosprint
-
 from team3_msgs.msg import ScannedObjs,ScannedObj
+from tools import rosprint
 
 class LaserNode:
     def __init__(self):

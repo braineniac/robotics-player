@@ -5,15 +5,15 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from matplotlib import pyplot as plt
 import numpy as np
-import team3_msgs
-from team3_msgs.msg import KinectObj, KinectObjs
+import tf2_ros
 
+import tf2_sensor_msgs
 from std_msgs.msg import String, Header
 from sensor_msgs.msg import Image, PointCloud2, PointField
-import tf2_ros
-import tf2_sensor_msgs
-from tools import rosprint
 import sensor_msgs.point_cloud2 as pc2
+
+from team3_msgs.msg import KinectObj, KinectObjs
+from tools import rosprint
 
 
 class CameraNode:
@@ -21,7 +21,9 @@ class CameraNode:
     def __init__(self):
         # inialising the node and publishers/subscribers
         rospy.init_node("camera_node", anonymous=True)
-        rospy.loginfo("Camera node initialised.")
+        rospy.loginfo("Initialised camera node!")
+        self.sim_env = rospy.get_param('sim_env')
+        rosprint("Is our world a simulation? {}".format(self.sim_env))
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
         self.point_sub = rospy.Subscriber("camera_depth", PointCloud2, self.pt_cb)
         # parameters
@@ -31,18 +33,21 @@ class CameraNode:
         self.image_data = None
         self.objects = KinectObjs().kinectObjList
         self.pub = rospy.Publisher("kinect_objs", KinectObjs, queue_size=1)
-        self.pub2 = rospy.Publisher("kinect_obj", KinectObj, queue_size=1)
+#        self.pub2 = rospy.Publisher("kinect_obj", KinectObj, queue_size=1)
         #self.pubtest = rospy.Publisher("detected_points", PointCloud2, queue_size=1000)  # detected points test
 
         # keeps node from exiting
-        rospy.spin()
+
+        self.pc_data = None
 
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
 
+        rospy.spin()
+
     def pt_cb(self, pt_msg):
         self.pc_data = pt_msg
-        rospy.loginfo(self.pc_data.point_step)
+#        rospy.loginfo(self.pc_data.point_step)
 
     def rgb_cb(self, img_msg=None):
         # this method initializes everything and ends with publishing detected objects
@@ -67,8 +72,10 @@ class CameraNode:
         self.detect_contours_and_pixels(self.color_data_B, "B")
         #        rospy.loginfo("Amount of yellow blobs:")
         self.detect_contours_and_pixels(self.color_data_Y, "Y")
-        self.Objs.header = self.pc_data.header
-        self.pub.publish(self.Objs)
+
+        if self.pc_data is not None:
+            self.Objs.header = self.pc_data.header
+            self.pub.publish(self.Objs)
 
     def blurfilter(self, image=None):
         self.image_blurred = cv2.GaussianBlur(image, (7,7), 6)
@@ -76,15 +83,25 @@ class CameraNode:
     def detect_color(self, image=None):
         # values are HSV, using hue+-10 for defining a color. Also while in HSV the
         # range of hue is 0-360 degrees, openCV uses hue/2 to fit the value into an int.
+        if self.sim_env:
+            lowerG = np.array([50, 0, 0])
+            upperG = np.array([70, 255, 255])
 
-        lowerG = np.array([60, 20, 0])
-        upperG = np.array([73, 255, 255])
+            lowerB = np.array([110, 0, 0])
+            upperB = np.array([130, 255, 255])
 
-        lowerB = np.array([86, 20, 0])
-        upperB = np.array([100, 255, 255])
+            lowerY = np.array([20, 0, 0])
+            upperY = np.array([40, 255, 255])
 
-        lowerY = np.array([20, 20, 150])
-        upperY = np.array([34, 255, 255])
+        else:
+            lowerG = np.array([60, 20, 0])
+            upperG = np.array([73, 255, 255])
+
+            lowerB = np.array([86, 20, 0])
+            upperB = np.array([100, 255, 255])
+
+            lowerY = np.array([20, 20, 150])
+            upperY = np.array([34, 255, 255])
         """
         lowerbottomR = np.array([0,0,0])	#HSV ranges for red, should we need it
         upperbottomR = np.array([10,255,255])   #since red hue value is 0 we need 2 ranges
@@ -113,7 +130,7 @@ class CameraNode:
 
         img_gray = cv2.cvtColor(color_data, cv2.COLOR_BGR2GRAY)
         img_bin = cv2.threshold(img_gray, 10, 255, cv2.THRESH_BINARY)[1]
-        cv2.imshow(self.color_window, img_bin)
+     #   cv2.imshow(self.color_window, img_bin)
         contours = cv2.findContours(img_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
 
         # contours is a list of sequences, so number of objects detected iterates through list
@@ -156,17 +173,19 @@ class CameraNode:
     def extract_objects(self, object_pixels=None, color=None):
 
         for i in object_pixels:
+            if self.pc_data is None:
+                return
             object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z"), uvs=[i]))
             #rospy.loginfo(object_points[0])
             Obj = team3_msgs.msg.KinectObj()
-            Obj.x = object_points[0][0]
+            # transforming coordinates
+            Obj.x = -object_points[0][2]
             Obj.y = object_points[0][1]
-            Obj.z = object_points[0][2]
+            Obj.z = object_points[0][0]
             Obj.delta_x = 0.0
             Obj.delta_y = 0.0
             Obj.delta_z = 0.0
             Obj.color = color
-            self.pub2.publish(Obj)
             self.Objs.kinectObjList.append(Obj)
 
         # rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
