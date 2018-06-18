@@ -25,7 +25,7 @@ class CameraNode:
         self.sim_env = rospy.get_param('sim_env')
         rosprint("Is our world a simulation? {}".format(self.sim_env))
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
-        self.point_sub = rospy.Subscriber("camera_depth", PointCloud2, self.pt_cb)
+        self.point_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.pt_cb)
         # "kinect/depth/points"
         # parameters
         self.bridge = CvBridge()
@@ -74,7 +74,7 @@ class CameraNode:
         self.detect_contours_and_pixels(self.color_data_Y, "Y")
 
         if self.pc_data is not None:
-            self.Objs.header = self.pc_data.header
+#            self.Objs.header = self.pc_data.header
             self.pub.publish(self.Objs)
 
     def blurfilter(self, image=None):
