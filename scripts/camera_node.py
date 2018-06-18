@@ -179,9 +179,9 @@ class CameraNode:
             #rospy.loginfo(object_points[0])
             Obj = KinectObj()
             # transforming coordinates
-            Obj.x = -object_points[0][2]
+            Obj.x = object_points[0][0]
             Obj.y = object_points[0][1]
-            Obj.z = object_points[0][0]
+            Obj.z = -object_points[0][2]
             Obj.delta_x = 0.0
             Obj.delta_y = 0.0
             Obj.delta_z = 0.0
