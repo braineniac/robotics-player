@@ -1,0 +1,5 @@
+---
+bool object_found
+bool obstacle_found
+---
+string message

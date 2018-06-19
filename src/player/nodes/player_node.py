@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
-import random as rd
 import rospy
-from geometry_msgs.msg import Twist
-from team3_msgs.msg import *
-from tools import rosprint
+import smach
 import numpy as np
+import random as rd
+from smach_ros import SimpleActionState, IntrospectionServer
+
+from geometry_msgs.msg import Twist
+from player.msg import *
+from player import rosprint
 
 class PlayerNode:
     def __init__(self):
@@ -13,18 +16,45 @@ class PlayerNode:
         rospy.init_node("player_node",anonymous=True)
         rospy.loginfo("Player node initialised.")
 
-        self.scanned_objs_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.run)
+        self.scanned_objs_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.det_objs_cb)
 
         self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1000)
         self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
         self.map_init = False
         self.mapped_objs = []
+        self.det_objs = None
 
         self.trans = [0,0,0]
         self.rot_euler = [0,0,0]
 
-        #keeps node from exiting
+    def smach(self):
+        sm = smach.StateMachine(outcomes=["preempted", "aborted", "succeeded"])
+
+        with sm:
+            @smach.cb_interface(outcomes=['map_build_successeded', 'map_build_failed'])
+            def build_map_cb(userdata,status,result):
+                rosprint("Result of build_map:{}".format(result))
+                if result.message == "build_map_failed":
+                    return "map_build_failed"
+                elif result.message == "map_build_successeded":
+                    return "map_build_successeded"
+
+            smach.StateMachine.add("BUILD_MAP",
+                    SimpleActionState("build_map",
+                                      BuildMapAction,
+                                      result_cb=build_map_cb),
+                    transitions={"map_build_failed": "BUILD_MAP",
+                                 "map_build_successeded": "BUILD_MAP"})
+
+        sis = IntrospectionServer("player_node", sm, "/SM_ROOT")
+        sis.start()
+
+        outcome = sm.execute()
         rospy.spin()
+        sis.stop()
+
+    def det_objs_cb(self, det_objs_msg):
+        self.det_obj = det_objs_msg
 
     def odom_cb(self, odom_msg):
         self.trans[0] += odom_msg.delta_x
@@ -159,7 +189,7 @@ class PlayerNode:
 if __name__ == '__main__':
 
     player = PlayerNode()
-
+    player.smach()
     loop_rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         # 10 Hz loop

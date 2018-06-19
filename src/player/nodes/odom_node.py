@@ -8,9 +8,8 @@ import numpy as np
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TransformStamped,Quaternion
 
-from team3_msgs.msg import ScannedObjs, ScannedObj, DeltaPose
-from team3_msgs.msg import ScannedObjs, ScannedObj, Odom, KinectObj,KinectObjs, DeltaPose
-from tools import rosprint
+from player.msg import ScannedObjs, ScannedObj, KinectObj,KinectObjs, DeltaPose
+from player import rosprint
 
 class OdomNode:
 
