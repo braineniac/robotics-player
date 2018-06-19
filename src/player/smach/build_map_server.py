@@ -28,11 +28,14 @@ class BuildMapServer:
 
     def look_for_poles(self):
         i = 0
-        for det_obj in self.det_objs:
-            if mapped_obj.color == "G":
-                self.poles.append(det_obj)
-        if len(self.poles) >= 3:
-            return True
+        if self.det_objs:
+            for det_obj in self.det_objs:
+                if mapped_obj.color == "G":
+                    self.poles.append(det_obj)
+            if len(self.poles) >= 3:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -89,7 +92,7 @@ class BuildMapServer:
     def execute(self, goal):
         #rosprint("Goal: build_map")
         result = BuildMapResult()
-        if self.check_for_3_poles() is True:
+        if self.look_for_poles() is True:
             if self.build_map() is True:
                 self.map_init = True
 
