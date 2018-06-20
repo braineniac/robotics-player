@@ -34,7 +34,7 @@ class MatchNode:
         TODO: make this a lot better after the fixing the laser and camera
         """
         matches = []
-
+        rospy.loginfo(self.current_camera_msg.kinectObjList)
         if self.current_camera_msg is not None:
             for laser_object in scanned_objs_message.scannedObjList:
                 laser_coords = np.array((laser_object.x, laser_object.y))
@@ -43,7 +43,16 @@ class MatchNode:
                     distance = np.linalg.norm(laser_coords-kinect_coords)
                     if distance < 0.2:
                         matches.append((kinect_coords, kinect_object.color))
-            rospy.loginfo("objects matched at: {}".format(matches))
+
+            goals = []
+            for kinect_object in self.current_camera_msg.kinectObjList:
+                if kinect_object.z < -0.25:
+                    kinect_coords = np.array((kinect_object.x, kinect_object.y))
+                    goals.append((kinect_coords, "{} goal".format(kinect_object.color)))
+
+            matches = matches + goals
+
+#            rospy.loginfo("objects matched at: {}".format(matches))
 
             matched_objects = DetectedObjs()
             matched_objects.header = self.current_camera_msg.header
