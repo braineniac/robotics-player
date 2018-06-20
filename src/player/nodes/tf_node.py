@@ -11,7 +11,7 @@ from player import rosprint
 class TFNode:
     def __init__(self, queue_size=1000):
         rospy.init_node("tf_node")
-        #rosprint("Initialised transform node!")
+        rosprint("Initialised transform node!")
 
 #        self.laser_sub =  rospy.Subscriber("front_laser/scan",LaserScan,
 #                               self.laser_sub_cb)
