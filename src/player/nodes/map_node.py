@@ -23,8 +23,6 @@ class MapNode:
 		self.height = 500
 		self.width = 300
 
-
-
 	def objs_cb(self, msg):
 		#initialise map here, fill with loop
 		map_msg = OccupancyGrid()
@@ -40,7 +38,7 @@ class MapNode:
 		map_msg.info.origin.position.x = - self.width // 2 * self.resolution
                 map_msg.info.origin.position.y = - self.height // 2 * self.resolution
 
-                # initialize grid with 0 (free) or -1 (unknown)
+        # initialize grid with 0 (free) or -1 (unknown)
 		grid = np.ndarray((self.width, self.height), buffer=np.zeros((self.width, self.height), dtype=np.int),
                         dtype=np.int)
 
@@ -84,7 +82,7 @@ class MapNode:
 				grid[int(obstacle[0]-1), int(obstacle[1])]   = int(50)
 			if  grid[int(obstacle[0]),   int(obstacle[1]-1)] < int(1):
 				grid[int(obstacle[0]),   int(obstacle[1]-1)] = int(50)
-			
+
                         for n in range(-10,10):
                             grid[int(obstacle[0]+n), int(obstacle[1]+n)] =100
                         """

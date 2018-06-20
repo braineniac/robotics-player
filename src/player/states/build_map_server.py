@@ -17,44 +17,70 @@ class BuildMapServer:
         self.scanned_objs_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.det_objs_cb)
         self.map_init = False
         self.det_objs = None
-        self.poles = None
 
-#callbacks
-
+    #callbacks
     def det_objs_cb(self, det_objs_msg):
-        self.det_obj = det_objs_msg
+        self.det_objs = det_objs_msg
 
-#map functions
-
-    def look_for_poles(self):
-        i = 0
+    #map functions
+    def extract_poles(self):
+        poles = []
         if self.det_objs:
-            for det_obj in self.det_objs:
-                if mapped_obj.color == "G":
-                    self.poles.append(det_obj)
-            if len(self.poles) >= 3:
-                return True
-            else:
-                return False
-        else:
-            return False
+            for det_obj in self.det_objs.kinectObjList:
+                if det_obj.color == "G":
+                    poles.append(det_obj)
+        return poles
 
     def dist_to_robot(self, pole):
         if pole is not None:
             x = pole.x
             y = pole.y
-            d = np.sqrt(x**x + y**y)
+            d = np.sqrt(x*x + y*y)
             return d
 
-    def get_closest_poles(self):
-        pass
+    def get_closest_poles(self, poles):
+        p0 = None
+        p1 = None
+        p2 = None
+        d1 = np.inf
+        d2 = np.inf
+        #finds 2 closest poles
+        for pole in poles:
+            other_poles = poles
+            other_poles.remove(pole)
+            for other_pole in other_poles:
+                if self.dist_two_poles(pole, other_pole) < d1:
+                    p0 = pole
+                    p1 = other_pole
+                    d1 = self.dist_two_poles(pole, other_pole)
+        #finds 3rd closest poles
+        other_poles = poles
+        other_poles.remove(p0)
+        other_poles.remove(p1)
+        closest_from_pair = None
+        for pole in other_poles:
+            if self.dist_two_poles(pole, p0) < d2:
+                p3 = pole
+                closest_from_pair = p0
+                d2 = self.dist_two_poles(pole, p0)
+            if self.dist_two_poles(pole, p1) < d2:
+                p3 = pole
+                closest_from_pair = p1
+                d2 = self.dist_two_poles(pole, p1)
+        #switch p0 and p1 if they were assigned incorrectly
+        if closest_from_pair == p0:
+            p0 = p1
+            p1 = closest_from_pair
+    
+        return [p0,p1,p2]
+
 
     def dist_two_poles(self, pole0, pole1):
         d = 0
         z0 = dist_to_robot(pole0)
         z1 = dist_to_robot(pole1)
         phi = np.arctan(pole0.y/pole0.x) - np.arctan(pole1.y/pole1.x)
-        d = np.sqrt(z0*z0 + z1*z1 -2*z0*z1*np.cos(phi))
+        d = np.sqrt(z0*z0 + z1*z1 - 2*z0*z1*np.cos(phi))
         return d
 
     def get_map_unit(self, close_poles):
@@ -75,14 +101,14 @@ class BuildMapServer:
             return map_unit
 
     def build_map(self):
-        close_poles = self.get_closest_poles()
+        close_poles = self.get_closest_poles(self.extract_poles())
         map_unit = self.get_map_unit(close_poles)
         if map_unit:
             # publish to a map service
             pass
 
-#server functions
 
+    #server functions
     def check_preemt(self):
         if self.server.is_preempt_requested():
             #rosprint("Preemtied: build_map")
@@ -110,4 +136,3 @@ if __name__ == '__main__':
     build_map_server = BuildMapServer()
 
     rospy.spin()
-
