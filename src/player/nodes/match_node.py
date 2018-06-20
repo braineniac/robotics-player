@@ -48,7 +48,7 @@ class MatchNode:
             for kinect_object in self.current_camera_msg.kinectObjList:
                 if kinect_object.z < -0.25:
                     kinect_coords = np.array((kinect_object.x, kinect_object.y))
-                    goals.append((kinect_coords, "{} goal".format(kinect_object.color)))
+                    goals.append((kinect_coords, "{}_goal".format(kinect_object.color)))
 
             matches = matches + goals
 
