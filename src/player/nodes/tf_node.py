@@ -62,9 +62,9 @@ class TFNode:
                 for Object in kinObjList.kinectObjList:
                     transformed_object = KinectObj()
                     point = (Object.x, Object.y, Object.z)
-                    rospy.loginfo(point)
+                    rospy.loginfo("Point:{}".format(point))
                     transformed_point = self.do_transform_cloud(point, top_shield_trans)
-                    rospy.loginfo(transformed_point)
+                    rospy.loginfo("Transformed:{}".format(transformed_point))
                     transformed_object.x = transformed_point[0]
                     transformed_object.y = transformed_point[1]
                     transformed_object.z = transformed_point[2]

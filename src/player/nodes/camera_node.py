@@ -7,7 +7,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 import tf2_ros
 
-import tf2_sensor_msgs
 from std_msgs.msg import String, Header
 from sensor_msgs.msg import Image, PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
@@ -181,7 +180,7 @@ class CameraNode:
             # transforming coordinates
             Obj.x = object_points[0][0]
             Obj.y = object_points[0][1]
-            Obj.z = -object_points[0][2]
+            Obj.z = object_points[0][2]
             Obj.delta_x = 0.0
             Obj.delta_y = 0.0
             Obj.delta_z = 0.0
