@@ -131,8 +131,7 @@ class LaserNode:
 
     def remove_objects(self, scanned_angles, scanned_dists):
         dist_threshold = 0.05
-        n_list = []
-        n_list.append([])
+        n_list = [[]]
         i = 0
         merged_scanned_angles = []
         merged_scanned_dist = []
@@ -147,7 +146,16 @@ class LaserNode:
         n_list = [x for x in n_list if x != []]
  #       rosprint(n_list)
         for elem in n_list:
-            middle = int(len(elem)/2)
+
+            if int(len(elem)) == 1:
+                middle = 0
+            else:
+                middle = int(len(elem)//2)
+            #rosprint("Length:{}".format(len(elem)))
+            #rosprint("Middle:{}".format(middle))
+            #rosprint("Scanned dists:{}".format(elem))
+            #rosprint("Elem:{}".format(elem[middle]))
+            #rosprint("Append:{}".format(scanned_dists[elem[middle]]))
             merged_scanned_dist.append(scanned_dists[elem[middle]])
             merged_scanned_angles.append(scanned_angles[elem[middle]])
 #        rosprint(len(merged_scanned_dist))
