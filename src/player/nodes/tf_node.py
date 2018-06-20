@@ -3,11 +3,10 @@
 import rospy
 from sensor_msgs.msg import LaserScan, Image, PointCloud2
 import tf2_ros
-#import tf2_sensor_msgs.tf2_sensor_msgs as tf2_sensor_msg
-from sensor_msgs.point_cloud2 import read_points, create_cloud
 import PyKDL
-#from tools import rosprint
-from team3_msgs.msg import KinectObj, KinectObjs
+
+from player.msg import *
+from player import rosprint
 
 class TFNode:
     def __init__(self, queue_size=1000):
@@ -59,7 +58,7 @@ class TFNode:
                 top_shield_trans=self.tf_buf.lookup_transform("robot1/front_laser",
                     "robot1/kinect_depth_optical_frame",now)
                 kinect_objs_transformed = KinectObjs()
-                kinect_objs_transformed.header = kinObjList.header # does this make sense?
+                kinect_objs_transformed.header = kinObjList.header
                 for Object in kinObjList.kinectObjList:
                     transformed_object = KinectObj()
                     point = (Object.x, Object.y, Object.z)

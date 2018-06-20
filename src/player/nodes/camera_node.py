@@ -7,13 +7,12 @@ from matplotlib import pyplot as plt
 import numpy as np
 import tf2_ros
 
-import tf2_sensor_msgs
 from std_msgs.msg import String, Header
 from sensor_msgs.msg import Image, PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
-from team3_msgs.msg import KinectObj, KinectObjs
-#from tools import rosprint
+from player.msg import KinectObj, KinectObjs
+from player import rosprint
 
 
 class CameraNode:
@@ -74,7 +73,7 @@ class CameraNode:
         self.detect_contours_and_pixels(self.color_data_Y, "Y")
 
         if self.pc_data is not None:
-            #            self.Objs.header = self.pc_data.header
+            self.Objs.header = self.pc_data.header
             self.pub.publish(self.Objs)
 
     def blurfilter(self, image=None):
