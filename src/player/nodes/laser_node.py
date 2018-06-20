@@ -173,8 +173,8 @@ class LaserNode:
         for n in range(0,len(scanned_dists)):
             scan_msg = ScannedObj()
             x,y = self.transform_radial_cartesian(scanned_angles[n], scanned_dists[n])
-            scan_msg.angle = x
-            scan_msg.dist = y
+            scan_msg.x = x
+            scan_msg.y = y
             #rospy.loginfo("laser sees stuff at a:{}, d:{}".format(scan_msg.angle, scan_msg.dist))
             scan_msgs.scannedObjList.append(scan_msg)
 #        rosprint(scan_msgs)

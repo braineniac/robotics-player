@@ -66,6 +66,7 @@ class TFNode:
                     transformed_object.x = transformed_point[0]
                     transformed_object.y = transformed_point[1]
                     transformed_object.z = transformed_point[2]
+                    transformed_object.color = Object.color
                     kinect_objs_transformed.kinectObjList.append(transformed_object)
                 self.depth_pub.publish(kinect_objs_transformed)
 
