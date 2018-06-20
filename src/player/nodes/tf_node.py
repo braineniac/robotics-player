@@ -3,11 +3,10 @@
 import rospy
 from sensor_msgs.msg import LaserScan, Image, PointCloud2
 import tf2_ros
-#import tf2_sensor_msgs.tf2_sensor_msgs as tf2_sensor_msg
-from sensor_msgs.point_cloud2 import read_points, create_cloud
 import PyKDL
-from tools import rosprint
-from team3_msgs.msg import KinectObj, KinectObjs
+
+from player.msg import *
+from player import rosprint
 
 class TFNode:
     def __init__(self, queue_size=1000):

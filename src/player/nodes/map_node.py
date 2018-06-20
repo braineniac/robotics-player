@@ -4,7 +4,7 @@ import numpy as np
 import rospy
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose
-from team3_msgs.msg import KinectObj, KinectObjs
+from player.msg import KinectObj, KinectObjs
 
 import tf
 

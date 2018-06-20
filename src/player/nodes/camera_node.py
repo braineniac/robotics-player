@@ -12,8 +12,8 @@ from std_msgs.msg import String, Header
 from sensor_msgs.msg import Image, PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
-from team3_msgs.msg import KinectObj, KinectObjs
-from tools import rosprint
+from player.msg import KinectObj, KinectObjs
+from player import rosprint
 
 
 class CameraNode:

@@ -7,13 +7,16 @@ set(CMAKE_CXX_FLAGS "-std=c++14 ${CMAKE_CXX_FLAGS}")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
+#  roscpp
+  rospy
   std_msgs
   sensor_msgs
   geometry_msgs
   image_transport
   cv_bridge
-  message_filters
+  #  message_filters
+  message_generation
+  actionlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -50,11 +53,19 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
+add_message_files(
+   FILES
 #   Message1.msg
 #   Message2.msg
-# )
+DetectedObj.msg
+DetectedObjs.msg
+KinectObj.msg
+KinectObjs.msg
+ScannedObj.msg
+ScannedObjs.msg
+CmdMove.msg
+DeltaPose.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -64,17 +75,20 @@ catkin_python_setup()
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+   FILES
+   RandomDrive.action
+   TakePicture.action
+   AvoidObstacle.action
+   BuildMap.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+   DEPENDENCIES
+   std_msgs
+   actionlib_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -108,7 +122,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robohockey
-#  CATKIN_DEPENDS roscpp std_msgs
+  CATKIN_DEPENDS rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -135,24 +149,24 @@ include_directories(
 # add_dependencies(robohockey ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(player_node src/playnode.cpp)
-add_executable(player_node_class src/playnode_class.cpp)
+#add_executable(player_node src/playnode.cpp)
+#add_executable(player_node_class src/playnode_class.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(player_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(player_node_class ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(player_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(player_node_class ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(player_node
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
+#target_link_libraries(player_node
+#  ${catkin_LIBRARIES}
+#  ${OpenCV_LIBRARIES}
+#)
 
-target_link_libraries(player_node_class
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
+#target_link_libraries(player_node_class
+#  ${catkin_LIBRARIES}
+#  ${OpenCV_LIBRARIES}
+#)
 
 #############
 ## Install ##
