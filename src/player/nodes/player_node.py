@@ -4,7 +4,6 @@ import rospy
 import random as rd
 import smach
 from smach_ros import SimpleActionState, IntrospectionServer
-from geometry_msgs.msg import Twist
 from player.msg import *
 from player import rosprint
 

@@ -4,7 +4,7 @@ import rospy
 from actionlib import SimpleActionClient
 
 from player.msg import *
-from tools import rosprint
+from player import rosprint
 
 def done_cb(state, result):
 #    rosprint("Action done: build_map, finished in state {} with result {}".format(state,result))
