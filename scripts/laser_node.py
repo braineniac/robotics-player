@@ -2,12 +2,14 @@
 
 import numpy as np
 import rospy
+import sys
 
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 
 from team3_msgs.msg import ScannedObjs,ScannedObj
 from tools import rosprint
+
 
 class LaserNode:
     def __init__(self):
@@ -23,8 +25,20 @@ class LaserNode:
         self.data = []
         self.average_data = []
 
+
         #keeps node from exiting
         rospy.spin()
+
+    def laser_node_ready(self):
+        try:
+            laser_node_rdy = rospy.Service('laser_node_rdy', laser_node_rdy)
+            if not laser_node_rdy:
+                laser_node_rdy = True
+            return  laser_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
+
+
 
     def laser_scan_cb(self, laser_msg=None):
         if self.save(self.checkReliability(laser_msg)):
@@ -131,8 +145,7 @@ class LaserNode:
 
     def remove_objects(self, scanned_angles, scanned_dists):
         dist_threshold = 0.05
-        n_list = []
-        n_list.append([])
+        n_list = [[]]
         i = 0
         merged_scanned_angles = []
         merged_scanned_dist = []
@@ -147,7 +160,10 @@ class LaserNode:
         n_list = [x for x in n_list if x != []]
  #       rosprint(n_list)
         for elem in n_list:
-            middle = int(len(elem)/2)
+            if int(len(elem)) == 1:
+                middle = 1
+            else:
+                middle = int(len(elem)//2)
             merged_scanned_dist.append(scanned_dists[elem[middle]])
             merged_scanned_angles.append(scanned_angles[elem[middle]])
 #        rosprint(len(merged_scanned_dist))

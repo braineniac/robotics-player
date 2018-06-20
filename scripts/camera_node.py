@@ -46,6 +46,15 @@ class CameraNode:
 
         rospy.spin()
 
+    def camera_node_ready(self):
+        try:
+            camera_node_rdy = rospy.Service('laser_node_rdy', camera_node_rdy)
+            if not camera_node_rdy:
+                camera_node_rdy = True
+            return  camera_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
+
     def pt_cb(self, pt_msg):
         self.pc_data = pt_msg
 

@@ -26,6 +26,15 @@ class PlayerNode:
         #keeps node from exiting
         rospy.spin()
 
+    def player_node_ready(self):
+        try:
+            player_node_rdy = rospy.Service('laser_node_rdy', player_node_rdy)
+            if not player_node_rdy:
+                player_node_rdy = True
+            return  player_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
+
     def odom_cb(self, odom_msg):
         self.trans[0] += odom_msg.delta_x
         self.trans[1] += odom_msg.delta_y
