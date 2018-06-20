@@ -6,19 +6,20 @@ import tf2_ros
 #import tf2_sensor_msgs.tf2_sensor_msgs as tf2_sensor_msg
 from sensor_msgs.point_cloud2 import read_points, create_cloud
 import PyKDL
-from player import rosprint
+#from tools import rosprint
+from team3_msgs.msg import KinectObj, KinectObjs
 
 class TFNode:
     def __init__(self, queue_size=1000):
         rospy.init_node("tf_node")
-        rosprint("Initialised transform node!")
+        #rosprint("Initialised transform node!")
 
 #        self.laser_sub =  rospy.Subscriber("front_laser/scan",LaserScan,
 #                               self.laser_sub_cb)
-        self.depth_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.depth_sub_cb)
+        self.depth_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.depth_sub_cb)
 
 #        self.laser_pub = rospy.Publisher("laser_top_shield", LaserScan,queue_size)
-        self.depth_pub = rospy.Publisher("camera_depth", PointCloud2, queue_size=10)
+        self.depth_pub = rospy.Publisher("kinect_objs_transformed", KinectObjs, queue_size=10)
 
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
@@ -40,34 +41,34 @@ class TFNode:
                 PyKDL.Vector(t.transform.translation.x, t.transform.translation.y,
                     t.transform.translation.z))
 
-    def do_transform_cloud(self,cloud, transform):
+    def do_transform_cloud(self, point, transform):
         t_kdl = self.transform_to_kdl(transform)
-        points_out = []
-        for p_in in read_points(cloud):
-            p_out = t_kdl * PyKDL.Vector(p_in[0], p_in[1], p_in[2])
-            points_out.append((p_out[0], p_out[1], p_out[2]) + p_in[3:])
-        res = create_cloud(transform.header, cloud.fields, points_out)
-        res.height = 480
-        res.width = 640
-        res.row_step = 12800
-        res.point_step = 20
-        return res
+        p_out = t_kdl * PyKDL.Vector(point[0], point[1], point[2])
+        return p_out
 
-    def depth_sub_cb(self, point_cloud):
+    def depth_sub_cb(self, kinObjList):
         """
         Currently transforming the depth pointcloud into the front laser frame,
         because we can't convert the LaserScan into an another frame
         """
-        if point_cloud:
+        if kinObjList:
             now = rospy.Time.now()
             can_trans = self.tf_buf.can_transform("robot1/front_laser",
                     "robot1/kinect_depth_optical_frame", now)
             if can_trans:
                 top_shield_trans=self.tf_buf.lookup_transform("robot1/front_laser",
                     "robot1/kinect_depth_optical_frame",now)
-                top_shield_pt_msg = self.do_transform_cloud(point_cloud,
-                    top_shield_trans)
-                self.depth_pub.publish(top_shield_pt_msg)
+                kinect_objs_transformed = KinectObjs()
+                kinect_objs_transformed.header = kinObjList.header # does this make sense?
+                for Object in kinObjList.kinectObjList:
+                    transformed_object = KinectObj()
+                    point = (Object.x, Object.y, Object.z)
+                    transformed_point = self.do_transform_cloud(point, top_shield_trans)
+                    transformed_object.x = transformed_point[0]
+                    transformed_object.y = transformed_point[1]
+                    transformed_object.z = transformed_point[2]
+                    kinect_objs_transformed.kinectObjList.append(transformed_object)
+                self.depth_pub.publish(kinect_objs_transformed)
 
     def laser_msg_transform(laser_msg=None,trans=None):
         """
