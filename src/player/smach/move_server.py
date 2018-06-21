@@ -29,7 +29,7 @@ class MoveServer:
         if success:
             self.result.message = "succeeded"
             rosprint("Move successfuly executed!")
-            self.server.setset_succeeded(self.result)
+            self.server.set_succeeded(self.result)
 
     #move functions
     def move(self, goal):

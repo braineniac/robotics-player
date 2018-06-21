@@ -4,7 +4,7 @@ float32 duration
 float32 speed
 ---
 #result definition
-float32 time_left
+string message
 ---
 #feedback definition
-string message
+float32 time_left
