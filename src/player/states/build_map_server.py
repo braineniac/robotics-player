@@ -14,12 +14,14 @@ class BuildMapServer:
         self.server = actionlib.SimpleActionServer("build_map", BuildMapAction, self.execute, False)
         self.server.start()
         self.feedback = BuildMapFeedback()
-        self.scanned_objs_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.det_objs_cb)
+        self.detected_objs_sub = rospy.Subscriber("detected_objs", DetectedObjs, self.det_objs_cb)
         self.map_init = False
         self.det_objs = None
 
     #callbacks
     def det_objs_cb(self, det_objs_msg):
+        rosprint("callback")
+        exit(-1)
         self.det_objs = det_objs_msg
 
     #map functions
@@ -27,7 +29,7 @@ class BuildMapServer:
         poles = []
         if self.det_objs:
             for det_obj in self.det_objs.kinectObjList:
-                if det_obj.color == "G":
+                if det_obj.id == "pole":
                     poles.append(det_obj)
         return poles
 
@@ -116,12 +118,14 @@ class BuildMapServer:
             return True
 
     def execute(self, goal):
-        #rosprint("Goal: build_map")
+        rosprint("Goal: build_map")
         result = BuildMapResult()
-        if self.look_for_poles() is True:
+        exit(-1)
+        if self.extract_poles() is True:
+            rosprint("Found poles")
             if self.build_map() is True:
                 self.map_init = True
-
+                roosprint("Built map succesfully!")
         self.feedback.message = "something"
         self.server.publish_feedback(self.feedback)
         if self.map_init is True:
