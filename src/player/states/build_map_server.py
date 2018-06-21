@@ -71,7 +71,7 @@ class BuildMapServer:
         if closest_from_pair == p0:
             p0 = p1
             p1 = closest_from_pair
-    
+
         return [p0,p1,p2]
 
 
@@ -118,7 +118,7 @@ class BuildMapServer:
     def execute(self, goal):
         #rosprint("Goal: build_map")
         result = BuildMapResult()
-        if self.look_for_poles() is True:
+        if len(self.extract_poles()) >= 3:
             if self.build_map() is True:
                 self.map_init = True
 
