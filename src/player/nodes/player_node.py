@@ -23,24 +23,30 @@ class PlayerNode:
         sm = smach.StateMachine(outcomes=["preempted", "aborted", "succeeded"])
 
         with sm:
-            @smach.cb_interface(outcomes=['map_build_successeded', 'map_build_failed'])
-            def build_map_cb(userdata,status,result):
-                rosprint("Result of build_map:{}".format(result))
-                if result.message == "build_map_failed":
-                    return "map_build_failed"
-                elif result.message == "map_build_successeded":
-                    return "map_build_successeded"
+            # @smach.cb_interface(outcomes=['map_build_successeded', 'map_build_failed'])
+            # def build_map_cb(userdata,status,result):
+            #     rosprint("Result of build_map:{}".format(result))
+            #     if result.message == "build_map_failed":
+            #         return "map_build_failed"
+            #     elif result.message == "map_build_successeded":
+            #         return "map_build_successeded"
 
+            #define move goal
+            move_goal = MoveGoal()
+            move_goal.direction = "ccw"
+            move_goal.duration = 10
+            move_goal.speed = 10
+
+            #define states
             smach.StateMachine.add("BUILD_MAP",
                     SimpleActionState("build_map",
-                                      BuildMapAction,
-                                      result_cb=build_map_cb), #???
-                    transitions={"map_build_failed": "BUILD_MAP",
-                                 "map_build_succeeded": "MOVE"})
+                                      BuildMapAction),
+                    transitions={"aborted": "MOVE",
+                                 "succeeded": "BUILD_MAP"})
             smach.StateMachine.add("MOVE",
                     SimpleActionState("build_map",
                                       MoveAction,
-                                      goal_slots=["ccw",10,10]),
+                                      goal=move_goal),
                     transitions={"succeeded": "BUILD_MAP"})
 
         sis = IntrospectionServer("player_node", sm, "/SM_ROOT")
