@@ -9,6 +9,7 @@ from sensor_msgs.msg import LaserScan
 
 from player.msg import ScannedObjs,ScannedObj
 from player import rosprint
+import player.srv
 
 
 class LaserNode:
@@ -31,10 +32,11 @@ class LaserNode:
 
     def laser_node_ready(self):
         try:
-            laser_node_rdy = rospy.Service('laser_node_rdy', laser_node_rdy)
-            if not laser_node_rdy:
-                laser_node_rdy = True
-            return  laser_node_rdy
+            laser_status = player.srv.laser_node_rdy
+            laser_status = rospy.Service('laser_node_rdy', laser_status)
+            if not laser_status:
+                laser_status = True
+            return  laser_status
         except rospy.ServiceException, e:
             print "Service failed: %s"%e
 

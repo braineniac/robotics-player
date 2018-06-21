@@ -3,21 +3,18 @@
 import random as rd
 import sys
 import rospy
-from geometry_msgs.msg import Twist
 from player.msg import *
 from player import rosprint
+from player.msg import waitForTeams, gameControl
+import player.srv
 
 
 class RefereeNode:
     def __init__(self):
+        self.referee_pub_status = rospy.Publisher("waitForTeams", waitForTeams)
+        self.referee_pub_control = rospy.Publisher("gameControl", gameControl)
         rospy.init_node("referee_node",anonymous=True)
         rosprint("Referee_node initialised!")
-
-        self.referee_pub = rospy.Publisher
-        self.laser_node_rdy = rospy.Subscriber("laser_node_rdy",Bool)
-
-
-    def server_rdy(req):
 
     def node_ready(self, node_status):
         """
@@ -31,51 +28,63 @@ class RefereeNode:
         rospy.wait_for_service('odom_node_rdy')
         rospy.wait_for_service('player_node_rdy')
         rospy.wait_for_service('tf_node_rdy')
+        laser_status = player.srv.laser_node_rdy
+        camera_status = player.srv.camera_node_rdy
+        map_status = player.srv.map_node_rdy
+        match_status = player.srv.match_node_rdy
+        move_status = player.srv.move_node_rdy
+        odom_status = player.srv.odom_node_rdy
+        player_status = player.srv.player_node_rdy
+        tf_status = player.srv.tf_node_rdy
+
 
         try:
-        laser_node_rdy = rospy.ServiceProxy('laser_node_rdy', laser_node_rdy)
+            laser_node_rdy = rospy.ServiceProxy('laser_node_rdy', laser_status)
 
-        camera_node_rdy = rospy.ServiceProxy('camera_node_rdy', camera_node_rdy)
+            camera_node_rdy = rospy.ServiceProxy('camera_node_rdy', camera_status)
 
-        map_node_rdy = rospy.ServiceProxy('map_node_rdy',map_node_rdy)
+            map_node_rdy = rospy.ServiceProxy('map_node_rdy',map_status)
 
-        match_node_rdy = rospy.ServiceProxy('match_node_rdy',match_node_rdy)
+            match_node_rdy = rospy.ServiceProxy('match_node_rdy',match_status)
 
-        move_node_rdy = rospy.ServiceProxy('move_node_rdy', move_node_rdy)
+            move_node_rdy = rospy.ServiceProxy('move_node_rdy', move_status)
 
-        odom_node_rdy = rospy.ServiceProxy('odom_node_rdy',odom_node_rdy)
+            odom_node_rdy = rospy.ServiceProxy('odom_node_rdy',odom_status)
 
-        player_node_rdy = rospy.ServiceProxy('player_node_rdy',player_node_rdy)
+            player_node_rdy = rospy.ServiceProxy('player_node_rdy',player_status)
 
-        tf_node_rdy = rospy.ServiceProxy('tf_node_rdy',tf_node_rdy)
-        if laser_node_rdy & camera_node_rdy & map_node_rdy & match_node_rdy & move_node_rdy & odom_node_rdy & player_node_rdy & tf_node_rdy:
-            node_status = True
-        return node_status
+            tf_node_rdy = rospy.ServiceProxy('tf_node_rdy',tf_status)
+            if laser_node_rdy and camera_node_rdy and map_node_rdy and match_node_rdy and move_node_rdy and odom_node_rdy and player_node_rdy and tf_node_rdy:
+                node_status = True
+            return node_status
 
         except rospy.ServiceException, e:
             print "Nodes failed to call: %s"%e
 
 
 
-    def teamready(self, team):
-        self.referee_pub.publish(msg)
+    def teamready(self):
+        control = gameControl()
+        self.referee_pub_gameControl.publish(control)
 
-    def sendcolor(self, team, color):
-
-
-
-    def senddimensions(self, team, geometry_msgs)
+#    def sendcolor(self, team, color):
 
 
-    if __name__ == '__main__':
-        node_status = False
-        referee_node = RefereeNode()
-        if not node_status:
-            node_status = node_ready(node_status)
-        else
-            teamready()
 
-        loop_rate = rospy.Rate(10)
-        while not rospy.is_shutdown():
-            # 10 Hz loop
-            loop_rate.sleep()
+#    def senddimensions(self, team, geometry_msgs):
+
+
+if __name__ == '__main__':
+    referee_node = RefereeNode()
+    node_status = False
+    if not node_status:
+        node_status = referee_node.node_ready(node_status)
+    else:
+        status = waitForTeams()
+        referee_node.referee_pub_status.publish(status)
+#       teamready()
+
+    loop_rate = rospy.Rate(10)
+    while not rospy.is_shutdown():
+        # 10 Hz loop
+        loop_rate.sleep()

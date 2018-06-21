@@ -7,6 +7,7 @@ from smach_ros import SimpleActionState, IntrospectionServer
 from player.msg import *
 from player import rosprint
 
+
 class PlayerNode:
     def __init__(self):
         #inialising the node and publishers/subsribers
