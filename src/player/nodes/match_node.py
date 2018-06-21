@@ -36,7 +36,7 @@ class MatchNode:
         matches = []
         camera_msg = self.current_camera_msg
         if camera_msg is not None:
-            rospy.loginfo(camera_msg.kinectObjList)
+            #rospy.loginfo(camera_msg.kinectObjList)
             for laser_object in scanned_objs_message.scannedObjList:
                 laser_coords = np.array((laser_object.x, laser_object.y))
                 for kinect_object in camera_msg.kinectObjList:
@@ -61,9 +61,9 @@ class MatchNode:
                             matches.append((kinect_coords, "{}_puck".format(kinect_object.color)))
 
             self.current_camera_msg = None
-            rosprint("================================================================")
-            rospy.loginfo("objects matched at: {}".format(matches))
-            rosprint("================================================================")
+            #rosprint("================================================================")
+            #rospy.loginfo("objects matched at: {}".format(matches))
+            #rosprint("================================================================")
             self.publish_matches(matches, camera_msg)
 
     def publish_matches(self, matches, camera_msg):

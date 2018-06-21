@@ -10,7 +10,7 @@ import tf
 
 
 class MapNode:
-<<<<<<< HEAD
+
     def __init__(self):
         rospy.init_node("map_node", anonymous=True)
         rospy.loginfo("Initialised map node!")
