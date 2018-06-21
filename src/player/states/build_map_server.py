@@ -11,12 +11,13 @@ class BuildMapServer:
 
     def __init__(self):
         rosprint("Initialised build_map server!")
+        self.map_init = False
+        self.det_objs = None
         self.server = actionlib.SimpleActionServer("build_map", BuildMapAction, self.execute, False)
         self.server.start()
         self.feedback = BuildMapFeedback()
         self.scanned_objs_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.det_objs_cb)
-        self.map_init = False
-        self.det_objs = None
+
 
     #callbacks
     def det_objs_cb(self, det_objs_msg):

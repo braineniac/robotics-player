@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
 import rospy
-from actionlib import SimpleActionClient
+import actionlib
 
 from player.msg import *
-from tools import rosprint
+from player import rosprint
 
-def move_client(direction="fwd", duration=1, speed=1):
+def move_client():
     #setup client
     client = actionlib.SimpleActionClient("move", MoveAction)
     client.wait_for_server()
     #cerate and send goal
-    goal = player.msg.MoveGoal()
-    goal.direction = direction
-    goal.duration = duration
-    goal.speed = speed
-    client.send_goal(goal)
+    move_goal = MoveGoal()
+    move_goal.direction = "ccw"
+    move_goal.duration = 1
+    move_goal.speed = 0.1
+    client.send_goal(move_goal)
 
     client.wait_for_result()
     return client.get_result()
@@ -25,4 +25,4 @@ if __name__ == '__main__':
         rospy.init_node("move_client")
         result = move_client()
     except rospy.ROSInterruptException:
-        print("Program interrupted before completion.", file=sys.stderr)
+        rosprint("Program interrupted before completion.")

@@ -13,7 +13,6 @@ class PlayerNode:
         rospy.init_node("player_node",anonymous=True)
         rospy.loginfo("Player node initialised.")
 
-        self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1000)
         self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
 
         self.trans = [0,0,0]
@@ -60,27 +59,6 @@ class PlayerNode:
         self.trans[0] += odom_msg.delta_x
         self.trans[1] += odom_msg.delta_y
         self.rot_euler[2] += odom_msg.delt_phi
-
-    def move(self, direction, duration=0.5, speed=0.1):
-        """
-        Sends CmdMove message to cmd_move topic. Direction: "fwd" = forward, "cw" = clockwise, "ccw" = counterclockwise, "stop" = stop. Duration in seconds. Speed in m/s.
-        """
-        msg = CmdMove()
-        if direction in ["fwd","cw","ccw","stop"]:
-            msg.direction = direction
-            if direction == "stop":
-                self.move_pub.publish(msg)
-        else:
-            raise ValueError("Invalid direction specifier! (Valid specifiers: fwd, cw, ccw, stop)\n")
-        if duration > 0:
-            msg.duration = duration
-        else:
-            raise ValueError("Duration is negative, 0 or unspecified!\n")
-        if speed > 0:
-            msg.speed = speed
-        else:
-            raise ValueError("Speed is negative, 0 or unspecified!\n")
-        self.move_pub.publish(msg)
 
     def avoid_obstacle(self,distance=None):
         """
