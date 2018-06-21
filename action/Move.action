@@ -1,0 +1,10 @@
+#goal definition
+string direction
+float32 duration
+float32 speed
+---
+#result definition
+float32 time_left
+---
+#feedback definition
+string message

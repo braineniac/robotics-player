@@ -34,9 +34,14 @@ class PlayerNode:
             smach.StateMachine.add("BUILD_MAP",
                     SimpleActionState("build_map",
                                       BuildMapAction,
-                                      result_cb=build_map_cb),
+                                      result_cb=build_map_cb), #???
                     transitions={"map_build_failed": "BUILD_MAP",
-                                 "map_build_successeded": "BUILD_MAP"})
+                                 "map_build_succeeded": "MOVE"})
+            smach.StateMachine.add("MOVE",
+                    SimpleActionState("build_map",
+                                      MoveAction,
+                                      goal_slots=["ccw",10,10]),
+                    transitions={"succeeded": "BUILD_MAP"})
 
         sis = IntrospectionServer("player_node", sm, "/SM_ROOT")
         sis.start()

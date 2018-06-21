@@ -81,6 +81,7 @@ add_action_files(
    TakePicture.action
    AvoidObstacle.action
    BuildMap.action
+   Move.action
 )
 
 ## Generate added messages and services with any dependencies listed here
