@@ -65,14 +65,22 @@ ScannedObj.msg
 ScannedObjs.msg
 CmdMove.msg
 DeltaPose.msg
+gameControl.msg
+waitForTeams.msg
 )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+FILES
+camera_node_rdy.srv
+laser_node_rdy.srv
+map_node_rdy.srv
+match_node_rdy.srv
+move_node_rdy.srv
+odom_node_rdy.srv
+player_node_rdy.srv
+tf_node_rdy.srv
+)
 
 ## Generate actions in the 'action' folder
 add_action_files(

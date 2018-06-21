@@ -2,12 +2,15 @@
 
 import numpy as np
 import rospy
+import sys
 
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 
 from player.msg import ScannedObjs,ScannedObj
 from player import rosprint
+import player.srv
+
 
 class LaserNode:
     def __init__(self):
@@ -23,8 +26,21 @@ class LaserNode:
         self.data = []
         self.average_data = []
 
+
         #keeps node from exiting
         rospy.spin()
+
+    def laser_node_ready(self):
+        try:
+            laser_status = player.srv.laser_node_rdy
+            laser_status = rospy.Service('laser_node_rdy', laser_status)
+            if not laser_status:
+                laser_status = True
+            return  laser_status
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
+
+
 
     def laser_scan_cb(self, laser_msg=None):
         if self.save(self.checkReliability(laser_msg)):
@@ -146,7 +162,6 @@ class LaserNode:
         n_list = [x for x in n_list if x != []]
  #       rosprint(n_list)
         for elem in n_list:
-
             if int(len(elem)) == 1:
                 middle = 0
             else:

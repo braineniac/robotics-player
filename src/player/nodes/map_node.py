@@ -25,6 +25,15 @@ class MapNode:
         self.height = 500
         self.width = 300
 
+    def map_node_ready(self):
+        try:
+            map_node_rdy = rospy.Service('laser_node_rdy', map_node_rdy)
+            if not map_node_rdy:
+                map_node_rdy = True
+            return map_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s" % e
+
     def objs_cb(self, msg):
         # initialise map here, fill with loop
         map_msg = OccupancyGrid()

@@ -31,6 +31,16 @@ class OdomNode:
 
         rospy.spin()
 
+    def odom_node_ready(self):
+        try:
+            odom_node_rdy = rospy.Service('laser_node_rdy', odom_node_rdy)
+            if not odom_node_rdy:
+                odom_node_rdy = True
+            return  odom_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
+
+
     def update_pose(self, kinect_msg):
         """
         Calculates changes of position and rotation of the laser and publishes it.

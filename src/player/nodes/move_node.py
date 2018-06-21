@@ -41,6 +41,15 @@ class MoveNode:
                 rospy.sleep(timeLeft)
                 timeLeft = 0
 
+    def move_node_ready(self):
+        try:
+            move_node_rdy = rospy.Service('laser_node_rdy', move_node_rdy)
+            if not move_node_rdy:
+                move_node_rdy = True
+            return  move_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
+
     def forward(self,speed=0):
         if speed > 0:
             self.__set_velocities(speed, 0)

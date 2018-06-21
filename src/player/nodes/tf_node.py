@@ -40,7 +40,19 @@ class TFNode:
                 PyKDL.Vector(t.transform.translation.x, t.transform.translation.y,
                     t.transform.translation.z))
 
+
+    def tf_node_ready(self):
+        try:
+            tf_node_rdy = rospy.Service('laser_node_rdy', tf_node_rdy)
+            if not tf_node_rdy:
+                tf_node_rdy = True
+            return  tf_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
+
+
     def do_transform_cloud(self, point, transform):
+
         t_kdl = self.transform_to_kdl(transform)
         p_out = t_kdl * PyKDL.Vector(point[0], point[1], point[2])
         return p_out

@@ -29,7 +29,21 @@ class MatchNode:
         if camera_msg:
             self.current_camera_msg = camera_msg
 
+
+    def match_node_ready(self):
+        try:
+            match_node_rdy = rospy.Service('laser_node_rdy', match_node_rdy)
+            if not match_node_rdy:
+                match_node_rdy = True
+            return  match_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
+
+
+
+
     def match(self, scanned_objs_message):
+
         """
         TODO: make this a lot better after the fixing the laser and camera
         """

@@ -11,6 +11,7 @@
     <node pkg="player" name="move_node" type="move_node.py" output="screen"/>
     <node pkg="player" name="odom_node" type="odom_node.py" output="screen"/>
     <node pkg="player" name="match_node" type="match_node.py" output="screen"/>
+    <node pkg="player" name="referee_node" type="referee_node.py" output="screen"/>
     <param name="sim_env" type="bool" value="true"/>
   </group>
 </launch>

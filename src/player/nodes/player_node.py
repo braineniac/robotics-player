@@ -7,6 +7,7 @@ from smach_ros import SimpleActionState, IntrospectionServer
 from player.msg import *
 from player import rosprint
 
+
 class PlayerNode:
     def __init__(self):
         #inialising the node and publishers/subsribers
@@ -33,8 +34,8 @@ class PlayerNode:
             #define move goal
             move_goal = MoveGoal()
             move_goal.direction = "ccw"
-            move_goal.duration = 10
-            move_goal.speed = 10
+            move_goal.duration = 1
+            move_goal.speed = 0.1
 
             #define states
             smach.StateMachine.add("BUILD_MAP",
@@ -54,6 +55,15 @@ class PlayerNode:
         outcome = sm.execute()
         rospy.spin()
         sis.stop()
+
+    def player_node_ready(self):
+        try:
+            player_node_rdy = rospy.Service('laser_node_rdy', player_node_rdy)
+            if not player_node_rdy:
+                player_node_rdy = True
+            return  player_node_rdy
+        except rospy.ServiceException, e:
+            print "Service failed: %s"%e
 
     def odom_cb(self, odom_msg):
         self.trans[0] += odom_msg.delta_x
