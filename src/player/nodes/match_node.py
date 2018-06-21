@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-from team3_msgs.msg import *
 
-from tools import rosprint
+from player.msg import *
+from player import rosprint
 
 class MatchNode:
 

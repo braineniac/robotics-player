@@ -4,11 +4,8 @@ import random as rd
 import sys
 import rospy
 from geometry_msgs.msg import Twist
-from team3_msgs.msg import *
-from tools import rosprint
-import numpy as np
-import roslaunch
-from sh import tail
+from player.msg import *
+from player import rosprint
 
 
 class RefereeNode:
@@ -76,7 +73,7 @@ class RefereeNode:
         if not node_status:
             node_status = node_ready(node_status)
         else
-            self.teamready = rospy.Publisher("laser_node_ready", team)
+            teamready()
 
         loop_rate = rospy.Rate(10)
         while not rospy.is_shutdown():

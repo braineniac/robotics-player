@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-from team3_msgs.msg import *
+from player.msg import *
 
-from tools import rosprint
+from player import rosprint
 from geometry_msgs.msg import Twist
 
 class MoveNode:

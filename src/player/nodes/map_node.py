@@ -4,7 +4,7 @@ import numpy as np
 import rospy
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose
-from team3_msgs.msg import KinectObj, KinectObjs
+from player.msg import *
 
 import tf
 
@@ -45,7 +45,7 @@ class MapNode:
 		map_msg.data = range(self.width * self.height)
 
 		map_msg.info.origin.position.x = - self.width // 2 * self.resolution
-                map_msg.info.origin.position.y = - self.height // 2 * self.resolution
+        map_msg.info.origin.position.y = - self.height // 2 * self.resolution
 
                 # initialize grid with 0 (free) or -1 (unknown)
 		grid = np.ndarray((self.width, self.height), buffer=np.zeros((self.width, self.height), dtype=np.int),

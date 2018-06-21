@@ -7,13 +7,12 @@ from matplotlib import pyplot as plt
 import numpy as np
 import tf2_ros
 
-import tf2_sensor_msgs
 from std_msgs.msg import String, Header
 from sensor_msgs.msg import Image, PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
-from team3_msgs.msg import KinectObj, KinectObjs
-from tools import rosprint
+from player.msg import KinectObj, KinectObjs
+from player import rosprint
 
 
 class CameraNode:
@@ -23,9 +22,9 @@ class CameraNode:
         rospy.init_node("camera_node", anonymous=True)
         rospy.loginfo("Initialised camera node!")
         self.sim_env = rospy.get_param('sim_env')
-        rosprint("Is our world a simulation? {}".format(self.sim_env))
+        #rosprint("Is our world a simulation? {}".format(self.sim_env))
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
-        self.point_sub = rospy.Subscriber("camera_depth", PointCloud2, self.pt_cb)
+        self.point_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.pt_cb)
         # "kinect/depth/points"
         # parameters
         self.bridge = CvBridge()
@@ -34,8 +33,8 @@ class CameraNode:
         self.image_data = None
         self.objects = KinectObjs().kinectObjList
         self.pub = rospy.Publisher("kinect_objs", KinectObjs, queue_size=1)
-#        self.pub2 = rospy.Publisher("kinect_obj", KinectObj, queue_size=1)
-        #self.pubtest = rospy.Publisher("detected_points", PointCloud2, queue_size=1000)  # detected points test
+        #        self.pub2 = rospy.Publisher("kinect_obj", KinectObj, queue_size=1)
+        # self.pubtest = rospy.Publisher("detected_points", PointCloud2, queue_size=1000)  # detected points test
 
         # keeps node from exiting
 
@@ -66,9 +65,9 @@ class CameraNode:
         except CvBridgeError as e:
             rospy.logerr(e)
             return
-        #image = cv2.flip(image, -1) # only needed for usb camera, not for kinect one
+        # image = cv2.flip(image, -1) # only needed for usb camera, not for kinect one
         self.image_data = image
-        #cv2.imshow(self.image_window, image)
+        # cv2.imshow(self.image_window, image)
         cv2.waitKey(10)
         self.blurfilter(self.image_data)
 
@@ -87,7 +86,7 @@ class CameraNode:
             self.pub.publish(self.Objs)
 
     def blurfilter(self, image=None):
-        self.image_blurred = cv2.GaussianBlur(image, (7,7), 6)
+        self.image_blurred = cv2.GaussianBlur(image, (7, 7), 6)
 
     def detect_color(self, image=None):
         # values are HSV, using hue+-10 for defining a color. Also while in HSV the
@@ -123,7 +122,6 @@ class CameraNode:
         maskB = cv2.inRange(imgHSV, lowerB, upperB)
         maskY = cv2.inRange(imgHSV, lowerY, upperY)
 
-
         outputG = cv2.bitwise_and(image, image, mask=maskG)
         outputB = cv2.bitwise_and(image, image, mask=maskB)
         outputY = cv2.bitwise_and(image, image, mask=maskY)
@@ -132,14 +130,13 @@ class CameraNode:
         self.color_data_B = outputB
         self.color_data_Y = outputY
 
-
     def detect_contours_and_pixels(self, color_data=None, color=None):
         # 80 degrees whole view, about half of the pole in 0.68m
         # using FindContours(), which requires binary image
 
         img_gray = cv2.cvtColor(color_data, cv2.COLOR_BGR2GRAY)
         img_bin = cv2.threshold(img_gray, 10, 255, cv2.THRESH_BINARY)[1]
-     #   cv2.imshow(self.color_window, img_bin)
+        #   cv2.imshow(self.color_window, img_bin)
         contours = cv2.findContours(img_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
 
         # contours is a list of sequences, so number of objects detected iterates through list
@@ -152,32 +149,32 @@ class CameraNode:
             y_values = []
             pxl_amount = 0
             # would be prettier with cv2.BoundingRSect
-            #rospy.loginfo(cv2.contourArea(contour))
-            if cv2.contourArea(contour) >= 800:     # only use contours containing more than x pixels
+            # rospy.loginfo(cv2.contourArea(contour))
+            if cv2.contourArea(contour) >= 800:  # only use contours containing more than x pixels
                 for elem in contour:
                     x_values.append(elem[0][0])
                     y_values.append(elem[0][1])
-                height = max(y_values)-min(y_values)
-                width = max(x_values)-min(x_values)
-#                area = cv2.contourArea(contour)
+                height = max(y_values) - min(y_values)
+                width = max(x_values) - min(x_values)
+                #                area = cv2.contourArea(contour)
                 for i in range(min(x_values), min(x_values) + width):
                     for j in range(min(y_values), min(y_values) + height):
                         if img_bin[j, i] == 255:
                             pxl_amount = pxl_amount + 1.0
-                self.contour_squares.append((min(x_values), min(y_values), width, height, pxl_amount/(height*width)))
-                cv2.rectangle(self.image_data, (min(x_values), min(y_values)), (min(x_values)+width, min(y_values)+height), (0,255,0), 2)
-                #rospy.loginfo("pixels: {}, density: {}".format(height*width, pxl_amount/(height*width)))
-
+                self.contour_squares.append(
+                    (min(x_values), min(y_values), width, height, pxl_amount / (height * width)))
+                cv2.rectangle(self.image_data, (min(x_values), min(y_values)),
+                              (min(x_values) + width, min(y_values) + height), (0, 255, 0), 2)
+                # rospy.loginfo("pixels: {}, density: {}".format(height*width, pxl_amount/(height*width)))
 
         cv2.imshow(self.image_window, self.image_data)
 
         object_pixels = []
         for square in self.contour_squares:
             if square[4] > 0.5:
-                pixels = [square[0]+square[2]//2,square[1]+square[3]//2]
+                pixels = [square[0] + square[2] // 2, square[1] + square[3] // 2]
                 object_pixels.append(pixels)
         self.extract_objects(object_pixels, color)
-
 
     def extract_objects(self, object_pixels=None, color=None):
 
@@ -185,20 +182,21 @@ class CameraNode:
             if self.pc_data is None:
                 return
             object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z"), uvs=[i]))
-            #rospy.loginfo(object_points[0])
+            # rospy.loginfo(object_points[0])
             Obj = KinectObj()
             # transforming coordinates
-            Obj.x = -object_points[0][2]
+            Obj.x = object_points[0][0]
             Obj.y = object_points[0][1]
-            Obj.z = object_points[0][0]
+            Obj.z = object_points[0][2]
             Obj.delta_x = 0.0
             Obj.delta_y = 0.0
             Obj.delta_z = 0.0
             Obj.color = color
             self.Objs.kinectObjList.append(Obj)
-            #rospy.loginfo("kinect sees stuff at x:{}, y:{}".format(Obj.x, Obj.y))
+            # rospy.loginfo("kinect sees stuff at x:{}, y:{}".format(Obj.x, Obj.y))
 
         # rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
+
 
 if __name__ == '__main__':
 
@@ -209,9 +207,9 @@ if __name__ == '__main__':
         # 10 Hz loop
         loop_rate.sleep()
 
-    # ========================================================================
-    # unused but potentially useful (read: useless) code
-    # ========================================================================
+        # ========================================================================
+        # unused but potentially useful (read: useless) code
+        # ========================================================================
         """
         def show_histogram(self, image=None):
             color = ('b', 'g', 'r')
@@ -221,12 +219,11 @@ if __name__ == '__main__':
                 plt.xlim([0, 256])
                 plt.ion()  # interactive mode, otherwise .show holds until window is closed
                 plt.show()
-    
-        
+
+
 	        pxlamount = np.count_nonzero(output)/3
 	        rospy.loginfo("number of pixels detected: {}".format(pxlamount))
 	    """
-
 
         """
         #for use in detect_contours

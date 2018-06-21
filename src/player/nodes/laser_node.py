@@ -7,8 +7,8 @@ import sys
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 
-from team3_msgs.msg import ScannedObjs,ScannedObj
-from tools import rosprint
+from player.msg import ScannedObjs,ScannedObj
+from player import rosprint
 
 
 class LaserNode:
@@ -161,9 +161,14 @@ class LaserNode:
  #       rosprint(n_list)
         for elem in n_list:
             if int(len(elem)) == 1:
-                middle = 1
+                middle = 0
             else:
                 middle = int(len(elem)//2)
+            #rosprint("Length:{}".format(len(elem)))
+            #rosprint("Middle:{}".format(middle))
+            #rosprint("Scanned dists:{}".format(elem))
+            #rosprint("Elem:{}".format(elem[middle]))
+            #rosprint("Append:{}".format(scanned_dists[elem[middle]]))
             merged_scanned_dist.append(scanned_dists[elem[middle]])
             merged_scanned_angles.append(scanned_angles[elem[middle]])
 #        rosprint(len(merged_scanned_dist))

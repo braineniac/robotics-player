@@ -1,0 +1,5 @@
+<launch>
+  <!--node pkg="smach_viewer" name="smach_viewer" type="smach_viewer.py"/-->
+  <node pkg="player" name="build_map_server" type="build_map_server.py"/>
+  
+</launch>
