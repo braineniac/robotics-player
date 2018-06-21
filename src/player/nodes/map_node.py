@@ -10,6 +10,7 @@ import tf
 
 
 class MapNode:
+<<<<<<< HEAD
     def __init__(self):
         rospy.init_node("map_node", anonymous=True)
         rospy.loginfo("Initialised map node!")
@@ -85,7 +86,7 @@ class MapNode:
 
             for n in range(-10, 10):
                 grid[int(obstacle[0] + n), int(obstacle[1] + n)] = 100
-            """
+"""
 t = 0.5
 i = 1
 free_cell = np.dot(rotMatrix,np.array([0, t*i])) + np.array([off_x,off_y])
@@ -95,7 +96,6 @@ while grid[int(free_cell[0]), int(free_cell[1])] < int(1):
     free_cell = np.dot(rotMatrix,np.array([0, t*i])) + np.array([off_x,off_y])
     i = i+1
 """
-
 
 if __name__ == '__main__':
 
