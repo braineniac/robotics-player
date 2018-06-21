@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-import smach
-import numpy as np
 import random as rd
+import smach
 from smach_ros import SimpleActionState, IntrospectionServer
-
-from geometry_msgs.msg import Twist
 from player.msg import *
 from player import rosprint
 
@@ -14,7 +11,7 @@ class PlayerNode:
     def __init__(self):
         #inialising the node and publishers/subsribers
         rospy.init_node("player_node",anonymous=True)
-        rospy.loginfo("Player node initialised.")
+        rospy.loginfo("Initialised player node!")
 
         self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1000)
         self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
@@ -105,7 +102,7 @@ class PlayerNode:
 if __name__ == '__main__':
 
     player = PlayerNode()
-    player.run_smach()
+    #player.run_smach()
     loop_rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         # 10 Hz loop
