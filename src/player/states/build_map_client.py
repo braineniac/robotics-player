@@ -10,13 +10,14 @@ def done_cb(state, result):
 #    rosprint("Action done: build_map, finished in state {} with result {}".format(state,result))
     pass
 
-def active_cb()
+def active_cb():
 #    rosprint("Action is now active: build_map")
     pass
 
 def feedback_cb(feedback):
 #    rosprint("Feedback build_map from action: {}".format(feedback))
     pass
+
 if __name__ == '__main__':
     rospy.init_node("build_map_client")
     build_map_client = SimpleActionClient("build_map", BuildMapAction)
