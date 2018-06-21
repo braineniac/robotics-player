@@ -5,7 +5,7 @@ from player.msg import *
 import numpy as np
 
 
-#from tools import rosprint
+from player import rosprint
 
 
 class MatchNode:
@@ -34,37 +34,45 @@ class MatchNode:
         TODO: make this a lot better after the fixing the laser and camera
         """
         matches = []
-        rospy.loginfo(self.current_camera_msg.kinectObjList)
-        if self.current_camera_msg is not None:
+        camera_msg = self.current_camera_msg
+        if camera_msg is not None:
+            rospy.loginfo(camera_msg.kinectObjList)
             for laser_object in scanned_objs_message.scannedObjList:
                 laser_coords = np.array((laser_object.x, laser_object.y))
-                for kinect_object in self.current_camera_msg.kinectObjList:
+                for kinect_object in camera_msg.kinectObjList:
+                    match_obj = DetectedObj()
                     kinect_coords = np.array((kinect_object.x, kinect_object.y))
                     distance = np.linalg.norm(laser_coords-kinect_coords)
-                    if distance < 0.2:
-                        matches.append((kinect_coords, kinect_object.color))
+                    match_obj.x = kinect_object.x
+                    match_obj.y = kinect_object.y
+                    if kinect_object.color == "G":
+                        if distance < 0.2:
+                            match_obj.id = "pole"
+                            if match_obj not in matches:
+                                matches.append(match_obj)
+                                break
+                    if kinect_object.z < -0.25:
+                        match_obj.id = "{}_goal".format(kinect_object.color)
+                        if match_obj not in matches:
+                            matches.append(match_obj)
+                    elif kinect_object.color != "G":
+                        match_obj.id = "{}_puck".format(kinect_object.color)
+                        if match_obj not in matches:
+                            matches.append((kinect_coords, "{}_puck".format(kinect_object.color)))
 
-            goals = []
-            for kinect_object in self.current_camera_msg.kinectObjList:
-                if kinect_object.z < -0.25:
-                    kinect_coords = np.array((kinect_object.x, kinect_object.y))
-                    goals.append((kinect_coords, "{}_goal".format(kinect_object.color)))
+            self.current_camera_msg = None
+            rosprint("================================================================")
+            rospy.loginfo("objects matched at: {}".format(matches))
+            rosprint("================================================================")
+            self.publish_matches(matches, camera_msg)
 
-            matches = matches + goals
-
-#            rospy.loginfo("objects matched at: {}".format(matches))
-
+    def publish_matches(self, matches, camera_msg):
+        if matches:
             matched_objects = DetectedObjs()
-            matched_objects.header = self.current_camera_msg.header
+            matched_objects.header = camera_msg.header
             for match in matches:
-                message = DetectedObj()
-                message.x = match[0][0]
-                message.y = match[0][1]
-                message.id = match[1]
-                matched_objects.detectedObjList.append(message)
+                matched_objects.detectedObjList.append(match)
             self.detected_obj_pub.publish(matched_objects)
-
-
 
 if __name__ == '__main__':
     match_node = MatchNode()
