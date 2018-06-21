@@ -40,10 +40,10 @@ class PlayerNode:
             smach.StateMachine.add("BUILD_MAP",
                     SimpleActionState("build_map",
                                       BuildMapAction),
-                    transitions={"aborted": "MOVE",
-                                 "succeeded": "BUILD_MAP"})
+                    transitions={"aborted": "MOVE"})
+                                 #"succeeded": "BUILD_MAP"})
             smach.StateMachine.add("MOVE",
-                    SimpleActionState("build_map",
+                    SimpleActionState("move",
                                       MoveAction,
                                       goal=move_goal),
                     transitions={"succeeded": "BUILD_MAP"})
@@ -91,7 +91,7 @@ class PlayerNode:
 if __name__ == '__main__':
 
     player = PlayerNode()
-    #player.run_smach()
+    player.run_smach()
     loop_rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         # 10 Hz loop

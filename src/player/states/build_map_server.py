@@ -23,16 +23,15 @@ class BuildMapServer:
 
     #callbacks
     def det_objs_cb(self, det_objs_msg):
-        rosprint("callback")
-        exit(-1)
         self.det_objs = det_objs_msg
 
     #map functions
     def extract_poles(self):
         poles = []
         if self.det_objs:
-            for det_obj in self.det_objs.kinectObjList:
+            for det_obj in self.det_objs.detectedObjList:
                 if det_obj.id == "pole":
+                    rosprint("Found pole")
                     poles.append(det_obj)
         return poles
 
@@ -126,11 +125,11 @@ class BuildMapServer:
         if len(self.extract_poles()) >= 3:
             if self.build_map() is True:
                 self.map_init = True
-                roosprint("Built map succesfully!")
+                rosprint("Built map succesfully!")
         self.feedback.message = "something"
         self.server.publish_feedback(self.feedback)
         if self.map_init is True:
-            result.message = "build_map_successeded"
+            result.message = "succeeded"
             self.server.set_succeeded(result)
         else:
             result.message = "build_map_failed"

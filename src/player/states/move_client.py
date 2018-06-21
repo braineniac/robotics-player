@@ -14,7 +14,7 @@ def move_client():
     move_goal = MoveGoal()
     move_goal.direction = "ccw"
     move_goal.duration = 1
-    move_goal.speed = 0.1
+    move_goal.speed = 0.5
     client.send_goal(move_goal)
 
     client.wait_for_result()

@@ -8,8 +8,6 @@ from player.msg import *
 from player import rosprint
 
 class MoveServer:
-    feedback = player.msg.MoveFeedback()
-    result = player.msg.MoveResult()
 
     def __init__(self):
         rosprint("Initialised move server!")
@@ -17,6 +15,8 @@ class MoveServer:
         self.server.start()
         #publishers
         self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1000)
+        self.feedback = MoveFeedback()
+        self.result = MoveResult()
 
     #callbacks
     def execute(self, goal):
@@ -27,12 +27,11 @@ class MoveServer:
         #execute action
         self.move(goal.direction, goal.duration, goal.speed)
 
-        r.sleep()
+        #r.sleep()
         #publish result
-        if success:
-            self.result.message = "succeeded"
-            rosprint("Move successfuly executed!")
-            self.server.set_succeeded(self.result)
+        self.result.message = "succeeded"
+        rosprint("Move successfuly executed!")
+        self.server.set_succeeded(self.result)
 
     #move functions
     def move(self, direction, duration=0.5, speed=0.1):
