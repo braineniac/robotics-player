@@ -11,12 +11,15 @@ class BuildMapServer:
 
     def __init__(self):
         rosprint("Initialised build_map server!")
+        self.map_init = False
+        self.det_objs = None
         self.server = actionlib.SimpleActionServer("build_map", BuildMapAction, self.execute, False)
         self.server.start()
         self.feedback = BuildMapFeedback()
         self.detected_objs_sub = rospy.Subscriber("detected_objs", DetectedObjs, self.det_objs_cb)
         self.map_init = False
         self.det_objs = None
+
 
     #callbacks
     def det_objs_cb(self, det_objs_msg):
@@ -73,7 +76,7 @@ class BuildMapServer:
         if closest_from_pair == p0:
             p0 = p1
             p1 = closest_from_pair
-    
+
         return [p0,p1,p2]
 
 
@@ -120,9 +123,7 @@ class BuildMapServer:
     def execute(self, goal):
         rosprint("Goal: build_map")
         result = BuildMapResult()
-        exit(-1)
-        if self.extract_poles() is True:
-            rosprint("Found poles")
+        if len(self.extract_poles()) >= 3:
             if self.build_map() is True:
                 self.map_init = True
                 roosprint("Built map succesfully!")

@@ -176,7 +176,6 @@ class CameraNode:
             # rospy.loginfo(object_points[0])
             Obj = KinectObj()
             # transforming coordinates
-            #rosprint(object_points)
             try:
                 Obj.x = object_points[0][0]
                 Obj.y = object_points[0][1]
@@ -185,9 +184,9 @@ class CameraNode:
                 Obj.delta_y = 0.0
                 Obj.delta_z = 0.0
                 Obj.color = color
+                self.Objs.kinectObjList.append(Obj)
             except IndexError:
                 pass
-            self.Objs.kinectObjList.append(Obj)
             # rospy.loginfo("kinect sees stuff at x:{}, y:{}".format(Obj.x, Obj.y))
 
         # rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))

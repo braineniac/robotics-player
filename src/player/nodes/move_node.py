@@ -22,7 +22,6 @@ class MoveNode:
         """
         Executes move based on CmdMove message.
         """
-
         timeLeft = move_msg.duration
         while timeLeft > 0:
             if move_msg.direction.lower() == "fwd":
