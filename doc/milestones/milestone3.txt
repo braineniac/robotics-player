@@ -1,0 +1,55 @@
+Milestone 3
+
+Julian on object detection and mapping:
+At Milestone 2 the 2D image data was filtered by HSV colour values and modified to get the opencv method findcontours to work. Since then findcontours was expanded upon to function as a way of object segmentation since the output is a list of sequences each corresponding to a single connected contour. Using the bounding boxes of the individual contours max/min x/y values we determine the central pixel for a primitive form of object detection. The point of the pointcloud corresponding to that center-pixel is published with it's colour value as a detected and identified object. An alternative approach where not just the central point but the whole segmented object (determined by colour and regions of the binary image used in findcontours) was returned as a pointcloud2 message was implemented but is not used (yet).
+
+We also spent a lot of time trying to get the python bindings for PCL to work and ultimately didn't use them since apparently the methods for conversion to and from ROS messages are not implemented there. There would have been a way of returning the whole pointcloud as a list and transforming that into a PCL-compatible format but we made do without PCL so far.
+
+I also started on implementing an occupancy grid in map_node.py while referencing https://github.com/RiccardoGiubilato/ros_autonomous_car/blob/master/src/laser_to_occupancy_grid.py but ran out of time, a nav_msgs.msg OccupancyGrid message is published but the transformations are not used correctly at the time of the milestone meeting.
+
+Lukas on odometry node:
+Newly implemented odometry node keeps track of the position of the robot (its laser scaner) relative to the world. This position tracking is implemented based on data from laser node. Every time new data is published by laser node, position deltas are calculated, position stored in the parametrs of OdomNode is updated, and updated position is broadcasted using TF brodcaster.
+
+Deltas are calculated as follows: We find obsticle closest to the middle of the laser range in the previous message from laser node. Than we find obsticle closest to this obsticle in the current message. Finally we calculate the deltas based on relative positions of this two objects.
+
+We didn't manage to connect world reference frame directly to "robot1/laser_scaner" frame, so we connected it to "robot1/odo". We didn't have time test it properly and I'm still trying to better understand the TF. Therfore there might be some bugs.
+
+Daniel
+The base structure of the code needed to be rewritten after milestone 2,
+because it was monolithic and used pythons class arguments as message parsing
+interface and not the ros node structure for which ros has the tools for
+debugging. Lukas rewrote one packages into nodes, but no messages. I took it
+over on the weekend and added a new team3_msgs repo where all of our
+messages are and finished the rewrite.
+The initial thought was that we get the middle points of the scanned objects
+with a distance to them and an angle from the middle frame of the robot and
+match that with the objects detected from the camera node, which should have a
+seen objects color, middle point and width to provide a range to match with
+the laser data. I wanted to use the camera only to ID the objects, because I
+thought that its way less precise than than the laser, but Julian found the
+specs and it seemed accurate enough for our purposes. I wrote also a tf node
+that should handle all transformations, but the only package I found that
+handles tf2 message transformation between sensor and geometry messages could
+only do pointclouds in python.
+Alex was originally assigned to merge the objects detected by the laser, but
+failed to deliver after 2-3 weeks, so I took it over and wrote that part.
+I did some research on SLAM and its implementations and it needs an odom node,
+which tracks the robots location in the map and provides a transform from the
+map to the robot in the tf tree. I did some ground work, but Lukas implemented
+it. 
+I joined the odom node and map node to form to be fully connected and do the
+initial mapping of the first objects, after 3 poles it should be able to fully
+localise itself, publish its location to odom and retransform every object
+through the tf tree.
+We couldnt finish our milestone objectives in time, there is some preliminary
+work on what to do after detecting the 3 poles in the player node. There were
+plans to implement SMACH to first check if there is a map, turn around until
+it finds 3 poles, build a map and then go to a state to search for the puck it
+up, etc..
+We had difficulties figuring out the tf parts, transformation, how quaternions
+work and how to transform things, because the documentations is none or almost
+none or just in C++ and equivalents dont exist. Also the two tf versions are
+very confusing. It was also hard to find anything about how to build a map,
+but after a bit of digging I found the project Julian referenced in his note
+and we could accelerate development, but there are still things that are
+unclear.

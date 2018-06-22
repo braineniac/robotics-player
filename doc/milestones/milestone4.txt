@@ -1,0 +1,18 @@
+Julian on object detection:
+The whole object detection process looks like this now:
+
+Camera node, subscribed to "kinect/rgb/image_raw" and "kinect/depth/points":
+Uses 2D image for discovering objects, the image gets blurred and then filtered by HSV colour ranges to identify areas belonging to objects of interest and then uses cv2.contours to segment those areas into possible objects (to avoid false positives contours containing less than arbitrarily decided 800 pixels are considered noise and discarded). Then for each discovered contour, the central pixel of it's bounding rectangle is read out from the kinect pointcloud and published as a list on the topic "kinect_objs" as a kḰinectObjs message, containing xyz of the pixel in kinect frame coordinates and with a string corresponding to the detection's colour range (Y, B and G).
+This node now also takes a parameter from player.launch to discern between detecting objects in the simulation vs. rosbag files since for real world data different HSV ranges are used.
+
+Tf node:
+Subscribed to the camera node, takes the detected points and transforms them into "robot1/front_laser" coordinate frame which should be parallel to the ground.
+
+Laser node:
+Finds objects in neighbouring similar regions of the laser data, transforms the detections into x and y coordinates in the laser frame and publishes those on the topic "scanned_objs" as a ScannedObjs message.
+
+Match node:
+Subscribed to tf and laser node it tries to match up laser and kinect objects for increased confidence in detections, for now if a laser and a kinect point are within 20cm of each other the coordinates of the kinect detection and a colour string are saved as a confident match on the topic "detected_objs" as a DetectedObjs message. Also, goals are detected here which are only seen by the kinect and thus can't be double checked by filtering the kinect detections by their z coordinate (implemented as < 25cm below laser coordinate frame since it's about 27cm from the ground). Those are added to the DetectedObjs message with their coordinates and "_goal" added to their colour string.
+
+Thoughts:
+There was a rewiring of pointcloud point detection from transforming the whole pointcloud (which takes a lot of processing operations) to transforming single points which makes that take much less time now. While as usual the concepts work great in the simulation (aka "theory") the rosbag data shows that some more calibration is needed which is tedious but doable. Since kinect object detection relies on 2D colour detection this approach is heavily dependent on dealing with lighting conditions like any image based machine vision application. This led to the approach of matching kinect and laser data to increase detection confidence and will hopefully work out. Once we have an idea about where on the field we are, there will be post-processing of the detected objects to ignore points outside the field or above the expected z-level of detection to tackle problems visible in HSV_Detections_3.png or Green_HSV_Problems.png.
