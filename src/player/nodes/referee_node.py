@@ -8,8 +8,6 @@ from player import rosprint
 from player.msg import waitForTeams, gameControl
 from player.srv import *
 
-from src import player
-
 
 class RefereeNode:
     def __init__(self):
