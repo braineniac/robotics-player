@@ -8,6 +8,9 @@ from player import rosprint
 from player.msg import waitForTeams, gameControl
 from player.srv import *
 
+from src import player
+
+
 class RefereeNode:
     def __init__(self):
         self.referee_pub_status = rospy.Publisher("waitForTeams", waitForTeams, queue_size=10)
@@ -60,13 +63,29 @@ class RefereeNode:
         except rospy.ServiceException, e:
             print "Nodes failed to call: %s"%e
 
-
+    def team_status(self, team_status):
+        if team_status.team == 'A':
+            team_status.ok = True
+        return team_status
 
     def teamready(self):
-        control = gameControl()
-        self.referee_pub_gameControl.publish(control)
+        rospy.wait_for_service('TeamReady')
+        teamready = rospy.Service('TeamReady', player.srv.TeamReady, referee_node.team_status)
+        rospy.spin()
 
-#    def sendcolor(self, team, color):
+    def determine_team_color(self, team_color):
+        if team_color.team == 'A' and team_color.color == 'blue':
+            team_color.ok = True
+        else:
+            team_color.ok = False
+            team_color.correctcolor = 'yellow'
+        return team_color
+
+
+    def sendcolor(self):
+        rospy.wait_for_service('SendColor')
+        team_color = rospy.Service('SendColor', player.srv.SendColor, referee_node.determine_team_color)
+        rospy.spin()
 
 
 
@@ -81,7 +100,6 @@ if __name__ == '__main__':
     else:
         status = waitForTeams()
         referee_node.referee_pub_status.publish(status)
-#       teamready()
 
     loop_rate = rospy.Rate(10)
     while not rospy.is_shutdown():
