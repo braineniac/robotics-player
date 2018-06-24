@@ -3,8 +3,9 @@
 import rospy
 import random as rd
 import smach
-from smach_ros import SimpleActionState, IntrospectionServer
-from player.msg import *
+#from player.msg import DeltaPose
+
+#from smach_ros import SimpleActionState, IntrospectionServer
 from player import rosprint
 
 
@@ -14,7 +15,7 @@ class PlayerNode:
         rospy.init_node("player_node",anonymous=True)
         rospy.loginfo("Initialised player node!")
 
-        self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
+        #self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
 
         self.trans = [0,0,0]
         self.rot_euler = [0,0,0]
@@ -101,7 +102,7 @@ class PlayerNode:
 if __name__ == '__main__':
 
     player = PlayerNode()
-    player.run_smach()
+    #player.run_smach()
     loop_rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         # 10 Hz loop

@@ -3,7 +3,6 @@
 
   <!-- KI node controlling the robot -->
   <group ns="robot$(arg team)">
-    <include file="$(find player)/launch/smach.launch"/>
     <node pkg="player" name="player_node" type="player_node.py" output="screen"/>
     <node pkg="player" name="camera_node" type="camera_node.py" output="screen"/>
     <node pkg="player" name="tf_node" type="tf_node.py" output="screen"/>
