@@ -77,8 +77,8 @@ class CameraNode:
         rospy.loginfo("OR started, iteration {}".format(self.iterations))
         # cv2.imshow(self.image_window, image)
 
-        
-        self.blurfilter(self.image_data)
+        self.active_image = self.image_data
+        self.blurfilter(self.active_image)
 
         self.Objs = KinectObjs()
 
@@ -172,11 +172,11 @@ class CameraNode:
                             pxl_amount = pxl_amount + 1.0
                 self.contour_squares.append(
                     (min(x_values), min(y_values), width, height, pxl_amount / (height * width)))
-                cv2.rectangle(self.image_data, (min(x_values), min(y_values)),
+                cv2.rectangle(self.active_image, (min(x_values), min(y_values)),
                               (min(x_values) + width, min(y_values) + height), (0, 255, 0), 2)
                 # rospy.loginfo("pixels: {}, density: {}".format(height*width, pxl_amount/(height*width)))
 
-        cv2.imshow(self.image_window, self.image_data)
+        cv2.imshow(self.image_window, self.active_image)
         cv2.waitKey(10)
 
         object_pixels = []
