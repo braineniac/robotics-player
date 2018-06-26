@@ -3,11 +3,11 @@
 import rospy
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
-from matplotlib import pyplot as plt
+
 import numpy as np
 import tf2_ros
 
-from std_msgs.msg import String, Header
+from std_msgs.msg import Bool, Header
 from sensor_msgs.msg import Image, PointCloud2, PointField
 import sensor_msgs.point_cloud2 as pc2
 
@@ -25,6 +25,7 @@ class CameraNode:
         #rosprint("Is our world a simulation? {}".format(self.sim_env))
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
         self.point_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.pt_cb)
+        self.exe_sub = rospy.Subscriber("OR_execution", Bool, self.exe_cb)
         # "kinect/depth/points"
         # parameters
         self.bridge = CvBridge()
@@ -39,6 +40,7 @@ class CameraNode:
         # keeps node from exiting
 
         self.pc_data = None
+        self.iterations = 0
 
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
@@ -58,17 +60,24 @@ class CameraNode:
         self.pc_data = pt_msg
 
     def rgb_cb(self, img_msg=None):
-        # this method initializes everything and ends with publishing detected objects
-
         try:
             image = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:
             rospy.logerr(e)
             return
-        # image = cv2.flip(image, -1) # only needed for usb camera, not for kinect one
         self.image_data = image
+        # image = cv2.flip(image, -1) # only needed for usb camera, not for kinect one
+
+
+    def exe_cb(self,message):
+        """
+        Object recognition starts here.
+        """
+        self.iterations += 1
+        rospy.loginfo("OR started, iteration {}".format(self.iterations))
         # cv2.imshow(self.image_window, image)
-        cv2.waitKey(10)
+
+        
         self.blurfilter(self.image_data)
 
         self.Objs = KinectObjs()
@@ -168,6 +177,7 @@ class CameraNode:
                 # rospy.loginfo("pixels: {}, density: {}".format(height*width, pxl_amount/(height*width)))
 
         cv2.imshow(self.image_window, self.image_data)
+        cv2.waitKey(10)
 
         object_pixels = []
         for square in self.contour_squares:
@@ -205,7 +215,7 @@ if __name__ == '__main__':
 
     camera_node = CameraNode()
 
-    loop_rate = rospy.Rate(10)
+    loop_rate = rospy.Rate(2)
     while not rospy.is_shutdown():
         # 10 Hz loop
         loop_rate.sleep()

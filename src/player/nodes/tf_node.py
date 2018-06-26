@@ -18,7 +18,7 @@ class TFNode:
         self.depth_sub = rospy.Subscriber("kinect_objs", KinectObjs, self.depth_sub_cb)
 
 #        self.laser_pub = rospy.Publisher("laser_top_shield", LaserScan,queue_size)
-        self.depth_pub = rospy.Publisher("kinect_objs_transformed", KinectObjs, queue_size=10)
+        self.depth_pub = rospy.Publisher("kinect_objs_transformed", KinectObjs, queue_size=1)
 
         self.tf_buf = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buf)
