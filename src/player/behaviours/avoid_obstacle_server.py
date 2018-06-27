@@ -14,7 +14,7 @@ class AvoidObstacleServer:
     def __init__(self):
         self.server = actionlib.SimpleActionServer("avoid_obstacle", AvoidObstacleAction, self.execute, False)
         self.server.start()
-        self.move_pub = rospy.Publisher("robot1/cmd_move", CmdMove,queue_size=10)
+        self.move_pub = rospy.Publisher("cmd_move", CmdMove,queue_size=10)
         rospy.loginfo("initialised avoid obstacle server")
 
     def check_preempt(self):

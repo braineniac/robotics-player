@@ -6,6 +6,7 @@ import actionlib
 
 from player.msg import *
 from std_msgs.msg import Bool
+from player import rosprint
 
 class RandomDriveServer:
 
@@ -13,9 +14,9 @@ class RandomDriveServer:
     
     def __init__(self):
         self.server = actionlib.SimpleActionServer("drive_randomly", RandomDriveAction, self.execute, False)
-        self.depth_sub = rospy.Subscriber("robot1/detected_objs", DetectedObjs, self.depth_sub_cb)
-        self.move_pub = rospy.Publisher("robot1/cmd_move", CmdMove, queue_size=10)
-        self.OR_pub = rospy.Publisher("robot1/OR_execution", Bool,queue_size=10)
+        self.depth_sub = rospy.Subscriber("detected_objs", DetectedObjs, self.depth_sub_cb)
+        self.move_pub = rospy.Publisher("cmd_move", CmdMove, queue_size=1)
+        self.OR_pub = rospy.Publisher("OR_execution", Bool,queue_size=1)
         self.server.start()
 
         self.freshest_detection = None
@@ -32,7 +33,7 @@ class RandomDriveServer:
                 rospy.loginfo("I was preempted")
                 self.server.set_preempted()
                 break
-
+            rosprint("Drive randomly server is running!")
             obstacle = False
             detect_stuff = Bool()
             detect_stuff.data = 1
