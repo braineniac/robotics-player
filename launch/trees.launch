@@ -1,0 +1,8 @@
+<launch>
+  <node pkg="player" name="drive_randomly_server" type="drive_randomly_server.py" output="screen"/>
+  <node pkg="player" name="take_picture_server" type="take_picture_server.py" output="screen"/>
+  <node pkg="player" name="avoid_obstacle_server" type="avoid_obstacle_server.py" output="screen"/>
+
+  <node pkg="player" name="trees" type="trees.py" output="screen"/>
+  <node pkg="rqt_py_trees" name="rqt_py_trees" type="rqt_py_trees"/>
+</launch>

@@ -1,9 +1,16 @@
 <launch>
   <arg name="team" default="1"/>
+  <arg name="use_trees" default="false"/>
 
   <!-- KI node controlling the robot -->
   <group ns="robot$(arg team)">
-    <include file="$(find player)/launch/smach.launch"/>
+    <group if="$(arg use_trees)">
+      <include file="$(find player)/launch/trees.launch"/>
+    </group>
+    <group unless="$(arg use_trees)">
+      <include file="$(find player)/launch/smach.launch"/>
+    </group>
+
     <node pkg="player" name="player_node" type="player_node.py" output="screen"/>
     <node pkg="player" name="camera_node" type="camera_node.py" output="screen"/>
     <node pkg="player" name="tf_node" type="tf_node.py" output="screen"/>
@@ -13,5 +20,6 @@
     <node pkg="player" name="match_node" type="match_node.py" output="screen"/>
     <node pkg="player" name="referee_node" type="referee_node.py" output="screen"/>
     <param name="sim_env" type="bool" value="true"/>
+    <param name="trees_on" type="bool" value="$(arg use_trees)"/>
   </group>
 </launch>

@@ -13,6 +13,7 @@ class PlayerNode:
         #inialising the node and publishers/subsribers
         rospy.init_node("player_node",anonymous=True)
         rospy.loginfo("Initialised player node!")
+        self.trees_on = rospy.get_param('trees_on')
 
         self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
 
@@ -101,7 +102,10 @@ class PlayerNode:
 if __name__ == '__main__':
 
     player = PlayerNode()
-    player.run_smach()
+    if player.trees_on is False:
+        rosprint(player.trees_on)
+        player.run_smach()
+
     loop_rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         # 10 Hz loop
