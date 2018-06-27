@@ -11,14 +11,9 @@
       <include file="$(find player)/launch/smach.launch"/>
     </group>
 
-    <node pkg="player" name="player_node" type="player_node.py" output="screen"/>
-    <node pkg="player" name="camera_node" type="camera_node.py" output="screen"/>
-    <node pkg="player" name="tf_node" type="tf_node.py" output="screen"/>
-    <node pkg="player" name="laser_node" type="laser_node.py" output="screen"/>
-    <node pkg="player" name="move_node" type="move_node.py" output="screen"/>
-    <node pkg="player" name="odom_node" type="odom_node.py" output="screen"/>
-    <node pkg="player" name="match_node" type="match_node.py" output="screen"/>
-    <node pkg="player" name="referee_node" type="referee_node.py" output="screen"/>
+    <include file="$(find player)/launch/servers.launch"/>
+    <include file="$(find player)/launch/nodes.launch"/>
+
     <param name="sim_env" type="bool" value="true"/>
     <param name="trees_on" type="bool" value="$(arg use_trees)"/>
   </group>

@@ -1,7 +1,3 @@
 <launch>
   <node pkg="smach_viewer" name="smach_viewer" type="smach_viewer.py"/>
-  <node pkg="player" name="build_map_server" type="build_map_server.py"/>
-  <node pkg="player" name="build_map_client" type="build_map_client.py"/>
-  <node pkg="player" name="move_server" type="move_server.py"/>
-  <node pkg="player" name="move_client" type="move_client.py"/>
 </launch>

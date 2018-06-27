@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="player" name="drive_randomly_server" type="drive_randomly_server.py" output="screen"/>
+  <node pkg="player" name="take_picture_server" type="take_picture_server.py" output="screen"/>
+  <node pkg="player" name="avoid_obstacle_server" type="avoid_obstacle_server.py" output="screen"/>
+  <node pkg="player" name="build_map_server" type="build_map_server.py"/>
+  <node pkg="player" name="move_server" type="move_server.py"/>
+</launch>

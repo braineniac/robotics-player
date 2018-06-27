@@ -3,8 +3,9 @@
 import rospy
 import random as rd
 import smach
-from smach_ros import SimpleActionState, IntrospectionServer
 from player.msg import *
+
+from smach_ros import SimpleActionState, IntrospectionServer
 from player import rosprint
 
 
@@ -15,7 +16,7 @@ class PlayerNode:
         rospy.loginfo("Initialised player node!")
         self.trees_on = rospy.get_param('trees_on')
 
-        self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
+        #self.odom_sub = rospy.Subscriber("pose_deltas", DeltaPose, self.odom_cb)
 
         self.trans = [0,0,0]
         self.rot_euler = [0,0,0]
@@ -102,6 +103,7 @@ class PlayerNode:
 if __name__ == '__main__':
 
     player = PlayerNode()
+
     if player.trees_on is False:
         rosprint(player.trees_on)
         player.run_smach()

@@ -72,7 +72,7 @@ class MatchNode:
                     elif kinect_object.color != "G":
                         match_obj.id = "{}_puck".format(kinect_object.color)
                         if match_obj not in matches:
-                            matches.append((kinect_coords, "{}_puck".format(kinect_object.color)))
+                            matches.append(match_obj)
 
             self.current_camera_msg = None
             #rosprint("================================================================")
