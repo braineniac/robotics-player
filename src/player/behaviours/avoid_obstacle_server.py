@@ -29,8 +29,8 @@ class AvoidObstacleServer:
 
         movement = CmdMove()
         movement.direction = "cw"
-        movement.duration = 0.4
-        movement.speed = 1
+        movement.duration = 1
+        movement.speed = 0.3
         self.move_pub.publish(movement)
 
         result.message = "successfully avoided"

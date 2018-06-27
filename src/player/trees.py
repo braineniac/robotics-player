@@ -14,6 +14,7 @@ class DriveRandomly(py_trees_ros.actions.ActionClient):
         self.blackboard = py_trees.blackboard.Blackboard()
         self.blackboard.obstacle_found = False
         self.blackboard.object_found = False
+        self.blackboard.map_not_built = True
 
     def update(self):
         # Use the superclass to process the update so we don't have to
@@ -30,7 +31,6 @@ class DriveRandomly(py_trees_ros.actions.ActionClient):
 
         # Just pass on the status
         return status
-
 
 
 """
@@ -56,6 +56,33 @@ class TakePicture(py_trees_ros.actions.ActionClient):
 def create_root():
     root = py_trees.composites.Chooser("Explorer")
 
+    build_map_seq = py_trees.composites.Sequence("Build map Sequence")
+    map_not_built = py_trees.blackboard.CheckBlackboardVariable("Map not built?",
+                                                                variable_name="map_not_built",
+                                                                expected_value=True,
+                                                                clearing_policy=py_trees.common.ClearingPolicy.NEVER)
+    map_built_flag = py_trees.blackboard.SetBlackboardVariable("map built flag off",
+                                                          variable_name="map_not_built",
+                                                          variable_value=False)
+
+    build_map_goal = BuildMapGoal()
+    build_map_goal.message = "build this MAP"
+    build_map = py_trees_ros.actions.ActionClient("Build map", BuildMapAction, build_map_goal, "build_map")
+    turn_left_msg = MoveGoal()
+    turn_left_msg.direction = "ccw"
+    turn_left_msg.duration = 1
+    turn_left_msg.speed = 0.3
+    turn_left = py_trees_ros.actions.ActionClient("Turn Left", MoveAction, turn_left_msg, "move")
+
+    build_map_sel = py_trees.composites.Selector("Build map Selector")
+
+    build_map_seq.add_child(map_not_built)
+    build_map_seq.add_child(build_map_sel)
+    build_map_seq.add_child(map_built_flag)
+    build_map_sel.add_child(build_map)
+    build_map_sel.add_child(turn_left)
+
+    root.add_child(build_map_seq)
     # Create a sequence for the obstacle avoidance behaviour
     obs_avoid = py_trees.composites.Sequence("Avoid obstacles")
     # Check the blackboard to see if there was an obstacle found

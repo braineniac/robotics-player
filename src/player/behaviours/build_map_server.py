@@ -6,6 +6,7 @@ import numpy as np
 
 from player.msg import *
 from player import rosprint
+from std_msgs.msg import Bool
 
 class BuildMapServer:
 
@@ -17,6 +18,7 @@ class BuildMapServer:
         self.server.start()
         self.feedback = BuildMapFeedback()
         self.detected_objs_sub = rospy.Subscriber("detected_objs", DetectedObjs, self.det_objs_cb)
+        self.OR_pub = rospy.Publisher("OR_execution", Bool, queue_size=1)
         self.map_init = False
         self.det_objs = None
 
@@ -81,8 +83,8 @@ class BuildMapServer:
 
     def dist_two_poles(self, pole0, pole1):
         d = 0
-        z0 = dist_to_robot(pole0)
-        z1 = dist_to_robot(pole1)
+        z0 = self.dist_to_robot(pole0)
+        z1 = self.dist_to_robot(pole1)
         phi = np.arctan(pole0.y/pole0.x) - np.arctan(pole1.y/pole1.x)
         d = np.sqrt(z0*z0 + z1*z1 - 2*z0*z1*np.cos(phi))
         return d
@@ -120,9 +122,14 @@ class BuildMapServer:
             return True
 
     def execute(self, goal):
-        rosprint("Goal: build_map")
+        rospy.loginfo("Executing build map!")
         result = BuildMapResult()
+        obstacle = False
+        detect_stuff = Bool()
+        detect_stuff.data = 1
+        self.OR_pub.publish(detect_stuff)
         if len(self.extract_poles()) >= 3:
+            rosprint("I am HERE")
             if self.build_map() is True:
                 self.map_init = True
                 rosprint("Built map succesfully!")
