@@ -16,17 +16,21 @@ from player import rosprint
 
 
 class CameraNode:
-
+    """
+    Handles inputs of the robot's kinect and performs most of the object detection. When an object recognition process
+    is started by a message to the exe_sub subscriber, the currently latest image and pointcloud are used to extract a
+    single 3D point per detected object in the kinect reference frame and returns those points as detection candidates.
+    """
     def __init__(self):
         # inialising the node and publishers/subscribers
         rospy.init_node("camera_node", anonymous=True)
         rospy.loginfo("Initialised camera node!")
         self.sim_env = rospy.get_param('sim_env')
-        #rosprint("Is our world a simulation? {}".format(self.sim_env))
+        rosprint("Is our world a simulation? {}".format(self.sim_env))
         self.rgb_sub = rospy.Subscriber("kinect/rgb/image_raw", Image, self.rgb_cb)
         self.point_sub = rospy.Subscriber("kinect/depth/points", PointCloud2, self.pt_cb)
         self.exe_sub = rospy.Subscriber("OR_execution", Bool, self.exe_cb)
-        # "kinect/depth/points"
+
         # parameters
         self.bridge = CvBridge()
         self.image_window = "Camera Input"
@@ -34,8 +38,6 @@ class CameraNode:
         self.image_data = None
         self.objects = KinectObjs().kinectObjList
         self.pub = rospy.Publisher("kinect_objs", KinectObjs, queue_size=1)
-        #        self.pub2 = rospy.Publisher("kinect_obj", KinectObj, queue_size=1)
-        # self.pubtest = rospy.Publisher("detected_points", PointCloud2, queue_size=1000)  # detected points test
 
         # keeps node from exiting
 
@@ -78,6 +80,8 @@ class CameraNode:
         # cv2.imshow(self.image_window, image)
 
         self.active_image = self.image_data
+        self.active_cloud = self.pc_data
+
         self.blurfilter(self.active_image)
 
         self.Objs = KinectObjs()
@@ -120,8 +124,8 @@ class CameraNode:
             lowerY = np.array([20, 20, 150])
             upperY = np.array([34, 255, 255])
         """
-        lowerbottomR = np.array([0,0,0])	#HSV ranges for red, should we need it
-        upperbottomR = np.array([10,255,255])   #since red hue value is 0 we need 2 ranges
+        lowerbottomR = np.array([0,0,0])	    # HSV ranges for red, should we need it
+        upperbottomR = np.array([10,255,255])   # since red hue value is 0 we need 2 ranges
         lowertopR = np.array([170,0,0])
         uppertopR = np.array([180,255,255])
         """
@@ -145,7 +149,7 @@ class CameraNode:
 
         img_gray = cv2.cvtColor(color_data, cv2.COLOR_BGR2GRAY)
         img_bin = cv2.threshold(img_gray, 10, 255, cv2.THRESH_BINARY)[1]
-        #   cv2.imshow(self.color_window, img_bin)
+
         contours = cv2.findContours(img_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
 
         # contours is a list of sequences, so number of objects detected iterates through list
@@ -158,7 +162,7 @@ class CameraNode:
             y_values = []
             pxl_amount = 0
             # would be prettier with cv2.BoundingRSect
-            # rospy.loginfo(cv2.contourArea(contour))
+
             if cv2.contourArea(contour) >= 800:  # only use contours containing more than x pixels
                 for elem in contour:
                     x_values.append(elem[0][0])
@@ -174,7 +178,6 @@ class CameraNode:
                     (min(x_values), min(y_values), width, height, pxl_amount / (height * width)))
                 cv2.rectangle(self.active_image, (min(x_values), min(y_values)),
                               (min(x_values) + width, min(y_values) + height), (0, 255, 0), 2)
-                # rospy.loginfo("pixels: {}, density: {}".format(height*width, pxl_amount/(height*width)))
 
         cv2.imshow(self.image_window, self.active_image)
         cv2.waitKey(10)
@@ -187,11 +190,12 @@ class CameraNode:
         self.extract_objects(object_pixels, color)
 
     def extract_objects(self, object_pixels=None, color=None):
+        # extracts 3d points corresponding to each object's bounding box' central pixel
 
         for i in object_pixels:
-            if self.pc_data is None:
+            if self.active_cloud is None:
                 return
-            object_points = list(pc2.read_points(self.pc_data, skip_nans=True, field_names=("x", "y", "z"), uvs=[i]))
+            object_points = list(pc2.read_points(self.active_cloud, skip_nans=True, field_names=("x", "y", "z"), uvs=[i]))
             # rospy.loginfo(object_points[0])
             Obj = KinectObj()
             # transforming coordinates
@@ -206,9 +210,7 @@ class CameraNode:
                 self.Objs.kinectObjList.append(Obj)
             except IndexError:
                 pass
-            # rospy.loginfo("kinect sees stuff at x:{}, y:{}".format(Obj.x, Obj.y))
 
-        # rospy.loginfo("{} objects of color {} detected".format(len(object_pixels), color))
 
 
 if __name__ == '__main__':
