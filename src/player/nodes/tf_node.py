@@ -72,9 +72,12 @@ class TFNode:
                 kinect_objs_transformed = KinectObjs()
                 kinect_objs_transformed.header = kinObjList.header
                 for Object in kinObjList.kinectObjList:
+                    rosprint(Object)
                     transformed_object = KinectObj()
                     point = (Object.x, Object.y, Object.z)
+                    rosprint(point)
                     transformed_point = self.do_transform_cloud(point, top_shield_trans)
+                    rosprint(transformed_point)
                     transformed_object.x = transformed_point[0]
                     transformed_object.y = transformed_point[1]
                     transformed_object.z = transformed_point[2]
