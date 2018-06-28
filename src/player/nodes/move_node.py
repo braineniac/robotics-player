@@ -40,6 +40,9 @@ class MoveNode:
             else:
                 rospy.sleep(timeLeft)
                 timeLeft = 0
+        self.stop()
+        rospy.sleep(1)
+
 
     def move_node_ready(self):
         try:

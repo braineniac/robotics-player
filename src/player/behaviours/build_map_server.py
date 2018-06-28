@@ -86,9 +86,10 @@ class BuildMapServer:
         d = 0
         z0 = self.dist_to_robot(pole0)
         z1 = self.dist_to_robot(pole1)
-        phi = np.arctan(pole0.y/pole0.x) - np.arctan(pole1.y/pole1.x)
+        phi = np.arctan(pole0.y / pole0.x) - np.arctan(pole1.y / pole1.x)
+        #phi = np.pi/2 - np.arctan(pole0.x/pole0.y) - np.arctan(pole1.x/pole1.y)
         d = np.sqrt(z0*z0 + z1*z1 - 2*z0*z1*np.cos(phi))
-        rosprint("{}".format(z0,z1))
+        rosprint("d1:{},d2:{},phi:{}".format(z0,z1,phi))
         return d
 
     def get_map_unit(self, close_poles):
@@ -98,19 +99,19 @@ class BuildMapServer:
             d2 = self.dist_two_poles(close_poles[1], close_poles[2])
             rosprint("The two pole dist:{},{}".format(d1,d2))
             rosprint("Relation of the two poles:{}".format(d1/d2))
-            rosprint("Deltas to the closest possible relations:{},{},{},{}".format(d1/d2 - 2/3,
-                                                                                   d1/d2 - 3 / 5,
-                                                                                   d1 / d2 - 1 / 2,
+            rosprint("Deltas to the closest possible relations:{},{},{},{}".format(d1/d2 - 2/3.0,
+                                                                                   d1/d2 - 3 / 5.0,
+                                                                                   d1 / d2 - 1 / 2.0,
                                                                                    d1 / d2 - 0.5 / 3.0))
             if d1==0 or d2==0:
                 return map_unit
-            elif d1/d2 - 2/3 < 0.2:
+            elif d1/d2 - 2/3.0 < 0.05:
                 map_unit = d2*6.6666/5.0
-            elif d1/d2 - 3/5 < 0.2:
+            elif d1/d2 - 3/5.0 < 0.05:
                 map_unit = d2 * 4.0/5.0
-            elif d1/d2 - 1/2 < 0.2:
+            elif d1/d2 - 1/2.0 < 0.05:
                 map_unit = d2 * 4.0 / 5.0
-            elif d1/d2 - 0.5/3.0 < 0.2:
+            elif d1/d2 - 0.5/3.0 < 0.05:
                 map_unit = d2/3.0
             return map_unit
 
@@ -118,7 +119,6 @@ class BuildMapServer:
         #close_poles = self.get_closest_poles(self.extract_poles())
         close_poles = self.extract_poles()
         map_unit = self.get_map_unit(close_poles)
-
         if map_unit!=0:
             rosprint("Detected map unit:{}".format(map_unit))
             rosprint("The map dimensions are:{},{}".format(map_unit*3, map_unit*5))

@@ -121,6 +121,7 @@ class CameraNode:
             lowerG = np.array([42, 20, 0])
             upperG = np.array([73, 255, 255])
 
+
             lowerB = np.array([86, 20, 0])
             upperB = np.array([110, 255, 255])
 
@@ -199,7 +200,7 @@ class CameraNode:
             if self.active_cloud is None:
                 return
             object_points = list(pc2.read_points(self.active_cloud, skip_nans=True, field_names=("x", "y", "z"), uvs=[i]))
-            # rospy.loginfo(object_points[0])
+            #rospy.loginfo(object_points[0])
             Obj = KinectObj()
             # transforming coordinates
             try:
@@ -212,7 +213,7 @@ class CameraNode:
                 Obj.color = color
                 self.Objs.kinectObjList.append(Obj)
             except IndexError:
-                pass
+                rosprint("Indexerror")
 
 
 

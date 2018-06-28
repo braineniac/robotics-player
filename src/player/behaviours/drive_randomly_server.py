@@ -41,7 +41,7 @@ class RandomDriveServer:
 
             if self.freshest_detection:
                 for object in self.freshest_detection.detectedObjList:
-                    if (object.x < 1 and object.x > 0 and object.y < 0.5 and object.y > -0.5):
+                    if (object.x < 1 and object.x > 0 and object.y < 0.5 and object.y > -0.5) and object.id != "Y_goal" and object.id != "B_goal":
                         rospy.loginfo("obstacle {} at x: {}, y:{}, avoiding".format(object.id, object.x, object.y))
                         obstacle = True
                 self.freshest_detection = None
