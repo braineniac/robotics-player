@@ -118,11 +118,12 @@ class CameraNode:
             upperY = np.array([40, 255, 255])
 
         else:
-            lowerG = np.array([50, 20, 0])
-            upperG = np.array([100, 255, 255])
+            lowerG = np.array([42, 20, 0])
+            upperG = np.array([73, 255, 255])
+
 
             lowerB = np.array([86, 20, 0])
-            upperB = np.array([100, 255, 255])
+            upperB = np.array([110, 255, 255])
 
             lowerY = np.array([20, 20, 150])
             upperY = np.array([34, 255, 255])
