@@ -8,7 +8,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 
 from player.msg import ScannedObjs,ScannedObj
-from player import rosprint
+from player import rosprint,getDataSize
 import player.srv
 
 
@@ -50,7 +50,7 @@ class LaserNode:
 
     def slice(self,p=None):
         if p is not None:
-            if self.getDataSize(self.average_data)<p:
+            if getDataSize(self.average_data)<p:
                 raise ValueError("p is bigger than raw_laser_data size!\n")
                 exit(-1)
             return self.average_data[p:-p]
@@ -58,7 +58,7 @@ class LaserNode:
             raise ValueError("Passed wrong argument to function!\n")
             exit(-1)
 
-    def checkReliability(slef, laser_msg=None, threshold=0):
+    def checkReliability(self, laser_msg=None, threshold=0):
         """
         Retursn only reliable ranges. Sets all unreliable values to nan.
         """
@@ -140,6 +140,7 @@ class LaserNode:
                     pass
                 posphi += 1
             self.remove_objects(scanned_angles, scanned_dists)
+            #self.publish_scanned(scanned_dists, scanned_angles)
 
         else:
             raise ValueError("The threshhold can't be zero!\n");

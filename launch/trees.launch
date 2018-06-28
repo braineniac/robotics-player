@@ -1,4 +1,4 @@
 <launch>
-  <node pkg="player" name="trees" type="trees.py" output="screen"/>
+  <node pkg="player" name="trees" type="trees.py"/>
   <node pkg="rqt_py_trees" name="rqt_py_trees" type="rqt_py_trees"/>
 </launch>

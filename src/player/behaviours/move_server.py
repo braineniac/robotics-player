@@ -26,6 +26,8 @@ class MoveServer:
         rosprint("Executing move in %s dir with %i duration and %i speed." % (goal.direction, goal.duration, goal.speed))
         #execute action
         self.move(goal.direction, goal.duration, goal.speed)
+        rospy.sleep(goal.duration)
+        self.move("stop")
 
         #r.sleep()
         #publish result

@@ -30,6 +30,7 @@ class BuildMapServer:
     #map functions
     def extract_poles(self):
         poles = []
+        #rosprint(self.det_objs)
         if self.det_objs:
             for det_obj in self.det_objs.detectedObjList:
                 if det_obj.id == "pole":
@@ -77,7 +78,7 @@ class BuildMapServer:
         if closest_from_pair == p0:
             p0 = p1
             p1 = closest_from_pair
-
+        rosprint([p0,p1,p2])
         return [p0,p1,p2]
 
 
@@ -85,8 +86,9 @@ class BuildMapServer:
         d = 0
         z0 = self.dist_to_robot(pole0)
         z1 = self.dist_to_robot(pole1)
-        phi = np.arctan(pole0.y/pole0.x) - np.arctan(pole1.y/pole1.x)
+        phi = np.arctan(abs(pole0.y)/abs(pole0.x)) + np.arctan(abs(pole1.y)/abs(pole1.x))
         d = np.sqrt(z0*z0 + z1*z1 - 2*z0*z1*np.cos(phi))
+        rosprint("{}".format(z0,z1))
         return d
 
     def get_map_unit(self, close_poles):
@@ -94,24 +96,28 @@ class BuildMapServer:
             map_unit = 0
             d1 = self.dist_two_poles(close_poles[0],close_poles[1])
             d2 = self.dist_two_poles(close_poles[1], close_poles[2])
-            if d1 or d2:
+            rosprint("The two pole dist:{}{}".format(d1,d2))
+            rosprint("The two pole relation:{}".format(d1/d2-1.5))
+            if d1==0 or d2==0:
                 return map_unit
-            elif d1/d2 - 2/3 < 0.01:
-                map_unit = d2*6.6666/5
-            elif d1/d2 - 3/5 < 0.01:
-                map_unit = d2 * 4/5
-            elif d1/d2 - 1/2 < 0.01:
-                map_unit = d2 * 4 / 5
-            elif d1/d2 - 0.5/3 - 0.01:
-                map_unit = d2/3
+            elif d1/d2 - 2/3 < 0.1:
+                map_unit = d2*6.6666/5.0
+            elif d1/d2 - 3/5 < 0.1:
+                map_unit = d2 * 4.0/5.0
+            elif d1/d2 - 1/2 < 0.1:
+                map_unit = d2 * 4.0 / 5.0
+            elif d1/d2 - 0.5/3.0 - 0.1:
+                map_unit = d2/3.0
             return map_unit
 
     def build_map(self):
-        close_poles = self.get_closest_poles(self.extract_poles())
+        #close_poles = self.get_closest_poles(self.extract_poles())
+        close_poles = self.extract_poles()
         map_unit = self.get_map_unit(close_poles)
+        rosprint("This is the map unit:{}".format(map_unit))
         if map_unit:
-            # publish to a map service
-            pass
+            rosprint("The map dimensions are:{},{}".format(map_unit*3, map_unit*5))
+            return True
 
 
     #server functions

@@ -1,15 +1,20 @@
 <launch>
   <arg name="team" default="1"/>
+  <arg name="use_trees" default="true"/>
 
   <!-- KI node controlling the robot -->
   <group ns="robot$(arg team)">
-    <include file="$(find player)/launch/smach.launch"/>
-    <node pkg="player" name="player_node" type="player_node.py" output="screen"/>
-    <node pkg="player" name="camera_node" type="camera_node.py" output="screen"/>
-    <node pkg="player" name="tf_node" type="tf_node.py" output="screen"/>
-    <node pkg="player" name="laser_node" type="laser_node.py" output="screen"/>
-    <node pkg="player" name="move_node" type="move_node.py" output="screen"/>
-    <node pkg="player" name="odom_node" type="odom_node.py" output="screen"/>
+    <group if="$(arg use_trees)">
+      <include file="$(find player)/launch/trees.launch"/>
+    </group>
+    <group unless="$(arg use_trees)">
+      <include file="$(find player)/launch/smach.launch"/>
+    </group>
+
+    <include file="$(find player)/launch/servers.launch"/>
+    <include file="$(find player)/launch/nodes.launch"/>
+
     <param name="sim_env" type="bool" value="true"/>
+    <param name="trees_on" type="bool" value="$(arg use_trees)"/>
   </group>
 </launch>

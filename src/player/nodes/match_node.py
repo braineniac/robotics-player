@@ -4,7 +4,6 @@ import rospy
 from player.msg import *
 import numpy as np
 
-
 from player import rosprint
 
 
@@ -17,6 +16,7 @@ class MatchNode:
         self.scanned_obj_sub = rospy.Subscriber("scanned_objs", ScannedObjs, self.match)
         self.kinect_objs_sub = rospy.Subscriber("kinect_objs_transformed", KinectObjs, self.camera_save)
         self.detected_obj_pub = rospy.Publisher("detected_objs", DetectedObjs, queue_size=1)
+        self.sim_env = rospy.get_param('sim_env')
 
         self.current_camera_msg = None
         rospy.spin()
@@ -40,8 +40,6 @@ class MatchNode:
             print "Service failed: %s"%e
 
 
-
-
     def match(self, scanned_objs_message):
 
         """
@@ -49,7 +47,7 @@ class MatchNode:
         """
         matches = []
         camera_msg = self.current_camera_msg
-        if camera_msg is not None:
+        if camera_msg is not None and self.sim_env is False:
             #rospy.loginfo(camera_msg.kinectObjList)
             for laser_object in scanned_objs_message.scannedObjList:
                 laser_coords = np.array((laser_object.x, laser_object.y))
@@ -60,12 +58,13 @@ class MatchNode:
                     match_obj.x = kinect_object.x
                     match_obj.y = kinect_object.y
                     if kinect_object.color == "G":
+                        #rosprint(distance)
                         if distance < 0.2:
                             match_obj.id = "pole"
                             if match_obj not in matches:
                                 matches.append(match_obj)
                                 break
-                    if kinect_object.z < -0.25:
+                    if kinect_object.z < -0.25 and kinect_object.color != "G":
                         match_obj.id = "{}_goal".format(kinect_object.color)
                         if match_obj not in matches:
                             matches.append(match_obj)
@@ -78,6 +77,24 @@ class MatchNode:
             #rosprint("================================================================")
             #rospy.loginfo("objects matched at: {}".format(matches))
             #rosprint("================================================================")
+            self.publish_matches(matches, camera_msg)
+
+        elif self.sim_env is True and camera_msg is not None:
+            for kinect_object in camera_msg.kinectObjList:
+                match_obj = DetectedObj()
+                match_obj.x = kinect_object.x
+                match_obj.y = kinect_object.y
+                if kinect_object.color == "G":
+                    match_obj.id = "pole"
+                    if match_obj not in matches:
+                        matches.append(match_obj)
+                if kinect_object.z < -0.25 and kinect_object.color != "G":
+                    match_obj.id = "{}_goal".format(kinect_object.color)
+                    if match_obj not in matches:
+                        matches.append(match_obj)
+                    if match_obj not in matches:
+                        matches.append(match_obj)
+            self.current_camera_msg = None
             self.publish_matches(matches, camera_msg)
 
     def publish_matches(self, matches, camera_msg):

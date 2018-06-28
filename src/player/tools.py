@@ -1,13 +1,13 @@
 import rospy
 
 def rosprint(string=None):
-    if string:
+    if string is not None:
         rospy.loginfo("{}".format(string))
 
-def getDataSize(self, data=None):
+def getDataSize(data=None):
     if data:
         sum =0
-        for data in laser_data:
+        for elem in laser_data:
             sum = sum+1
         return sum
     else:
