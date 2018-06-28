@@ -76,7 +76,10 @@ class CameraNode:
         Object recognition starts here.
         """
         self.iterations += 1
-        rospy.loginfo("OR started, iteration {}".format(self.iterations))
+        if self.iterations % 2 == 1:
+            rospy.loginfo("Tick {}".format(self.iterations))
+        else:
+            rosprint("Tock:{}".format(self.iterations))
         # cv2.imshow(self.image_window, image)
 
         self.active_image = self.image_data

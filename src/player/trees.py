@@ -70,8 +70,8 @@ def create_root():
     build_map = py_trees_ros.actions.ActionClient("Build map", BuildMapAction, build_map_goal, "build_map")
     turn_left_msg = MoveGoal()
     turn_left_msg.direction = "ccw"
-    turn_left_msg.duration = 0.2
-    turn_left_msg.speed = 0.5
+    turn_left_msg.duration = 0.5
+    turn_left_msg.speed = 0.1
     turn_left = py_trees_ros.actions.ActionClient("Turn Left", MoveAction, turn_left_msg, "move")
 
     build_map_sel = py_trees.composites.Selector("Build map Selector")
