@@ -1,0 +1,16 @@
+Daniel
+With the help of Julian we replaced smach with pyTrees. We could finally debug the build map server and it returns
+the detected map dimensions based on the distance relations between the three detected poles in front of it.
+If it succeeds with this, it sets a guard boolean in the map build sequence(this is the first one thats run), so
+it doesnt try to build the map again. It returns to the root, checks if there is an obstacle in front of it,
+avoids it and does some random movement. If it fails to build a map due to not seeing enough poles or the data is off,
+then it proceeds to turn left until it does.
+We had some issues matching the laser data, first I thought its an error in the code, but it was due to the robot moving
+way too much and the messages didnt have time to sync up correctly. I slowed down general movement and introduced a lot
+of stops and waits to solve this problem.
+We added team color detection by just checking for the very first goal we see that's closer than 2 meters and its color
+is our team color.
+Julian also adjusted the HSV values from the rosbag files so we hopefully dont have to tinker around too much with it
+during the competition.
+I also restructured the launch files so they call each other when beeing run so its more structured and easier to find
+what exactly is beeing called.
