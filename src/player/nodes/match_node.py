@@ -18,6 +18,8 @@ class MatchNode:
         self.detected_obj_pub = rospy.Publisher("detected_objs", DetectedObjs, queue_size=1)
         self.sim_env = rospy.get_param('sim_env')
 
+        self.own_goal_det = False
+        self.other_goal_det = False
         self.current_camera_msg = None
         rospy.spin()
 
@@ -63,10 +65,17 @@ class MatchNode:
                             match_obj.id = "pole"
                             if match_obj not in matches:
                                 matches.append(match_obj)
-                                break
                     if kinect_object.z < -0.25 and kinect_object.color != "G":
                         match_obj.id = "{}_goal".format(kinect_object.color)
                         if match_obj not in matches:
+                            if self.own_goal_det is False:
+                                d = np.sqrt(kinect_object.x * kinect_object.x + kinect_object.y * kinect_object.y)
+                                if d>2.0 and self.other_goal_det is False:
+                                    rosprint("Detected other teams goal, color:{}".format(kinect_object.color))
+                                    self.other_goal_det = True
+                                else:
+                                    rosprint("Detected our own goal, color:{}".format(kinect_object.color))
+                                    self.own_goal_det = True
                             matches.append(match_obj)
                     elif kinect_object.color != "G":
                         match_obj.id = "{}_puck".format(kinect_object.color)
@@ -77,24 +86,6 @@ class MatchNode:
             #rosprint("================================================================")
             #rospy.loginfo("objects matched at: {}".format(matches))
             #rosprint("================================================================")
-            self.publish_matches(matches, camera_msg)
-
-        elif self.sim_env is True and camera_msg is not None:
-            for kinect_object in camera_msg.kinectObjList:
-                match_obj = DetectedObj()
-                match_obj.x = kinect_object.x
-                match_obj.y = kinect_object.y
-                if kinect_object.color == "G":
-                    match_obj.id = "pole"
-                    if match_obj not in matches:
-                        matches.append(match_obj)
-                if kinect_object.z < -0.25 and kinect_object.color != "G":
-                    match_obj.id = "{}_goal".format(kinect_object.color)
-                    if match_obj not in matches:
-                        matches.append(match_obj)
-                    if match_obj not in matches:
-                        matches.append(match_obj)
-            self.current_camera_msg = None
             self.publish_matches(matches, camera_msg)
 
     def publish_matches(self, matches, camera_msg):

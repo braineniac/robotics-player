@@ -63,10 +63,10 @@ class RandomDriveServer:
             else:
                 choices = ["fwd", "fwd", "cw", "ccw"]
                 movement.direction = random.choice(choices)
-                movement.duration = random.random()
-                movement.speed = random.random()
+                movement.duration = random.uniform(0.3, 3)
+                movement.speed = random.uniform(0.05,0.2)
                 self.move_pub.publish(movement)
-                rospy.loginfo("moving randomly")
+                rospy.loginfo("moving randomly with direction:{}, duration:{},speed:{}".format(movement.direction,movement.duration,movement.speed))
 
                 rospy.sleep(0.5)
                 movement.direction = "stop"
