@@ -68,14 +68,13 @@ class MatchNode:
                     if kinect_object.z < -0.25 and kinect_object.color != "G":
                         match_obj.id = "{}_goal".format(kinect_object.color)
                         if match_obj not in matches:
+                            d = np.sqrt(kinect_object.x * kinect_object.x + kinect_object.y * kinect_object.y)
                             if self.own_goal_det is False:
-                                d = np.sqrt(kinect_object.x * kinect_object.x + kinect_object.y * kinect_object.y)
-                                if d>2.0 and self.other_goal_det is False:
-                                    rosprint("Detected other teams goal, color:{}".format(kinect_object.color))
-                                    self.other_goal_det = True
-                                else:
-                                    rosprint("Detected our own goal, color:{}".format(kinect_object.color))
-                                    self.own_goal_det = True
+                                rosprint("Detected our own goal, color:{}".format(kinect_object.color))
+                                self.own_goal_det = True
+                            if d > 2.0 and self.other_goal_det is False:
+                                rosprint("Detected other teams goal, color:{}".format(kinect_object.color))
+                                self.other_goal_det = True
                             matches.append(match_obj)
                     elif kinect_object.color != "G":
                         match_obj.id = "{}_puck".format(kinect_object.color)

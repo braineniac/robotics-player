@@ -33,7 +33,7 @@ class RandomDriveServer:
                 rospy.loginfo("I was preempted")
                 self.server.set_preempted()
                 break
-            rosprint("Drive randomly server is running!")
+            #rosprint("Drive randomly server is running!")
             obstacle = False
             detect_stuff = Bool()
             detect_stuff.data = 1
